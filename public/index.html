@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Reaper — High-Fidelity Website Cloner & Offline Runner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="bg-[#09090b] text-[#f4f4f5] font-sans antialiased min-h-screen relative selection:bg-blue-600 selection:text-white">
+
+    <!-- Radial Top Ambient Glow -->
+    <div class="bg-radial-gradient"></div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        <!-- ================= NAVBAR ================= -->
+        <header class="border-b border-white/[0.08] bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
+                <!-- Brand -->
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center text-white font-bold shadow-sm">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-sm tracking-tight text-white">Website Reaper</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-400 font-medium">v2.0</span>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-white/10 text-xs text-zinc-400 font-normal">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Hybrid Engine Ready</span>
+                    </div>
+                </div>
+
+                <!-- Navigation & Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="btnHowToRun" class="btn-ghost-action text-xs" type="button">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>How to Run</span>
+                    </button>
+
+                    <!-- Dark / Light Mode Toggle -->
+                    <button id="themeToggleBtn" class="btn-ghost-action px-2" type="button" title="Toggle Theme (Alt+T)">
+                        <svg id="themeIconDark" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <svg id="themeIconLight" class="hidden" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="max-w-4xl mx-auto px-4 md:px-6 py-10 flex-1 flex flex-col gap-8 w-full">
+
+            <!-- 1. HERO SECTION -->
+            <section class="text-center space-y-3 pt-4">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/[0.08] border border-blue-500/20 text-blue-400 text-xs font-medium">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>Full-Fidelity Offline Website Cloner</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                    Download any website. <br class="hidden sm:inline">
+                    <span class="text-zinc-400">Run it offline with all animations.</span>
+                </h1>
+
+                <p class="text-sm md:text-base text-zinc-400 max-w-xl mx-auto font-normal">
+                    Captures recursive pages, dynamic CSSOM keyframe animations, web fonts, and assets into a runnable bundle with zero-config local servers.
+                </p>
+            </section>
+
+            <!-- 2. CLONE INPUT CARD -->
+            <div class="surface-card p-3 sm:p-4 space-y-3 shadow-lg">
+                <form id="cloneForm" class="space-y-3">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-[#0c0c10] border border-white/10 rounded-xl p-1.5 focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/[0.04] transition-all">
+                        <div class="flex items-center flex-1 px-2.5 gap-2.5">
+                            <svg class="text-zinc-500 shrink-0" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="urlInput" 
+                                placeholder="Enter website URL (e.g. tailwindcss.com or https://example.com)..." 
+                                required 
+                                autocomplete="off" 
+                                spellcheck="false"
+                                class="w-full bg-transparent border-0 text-white placeholder-zinc-500 text-sm focus:ring-0 focus:outline-none py-1.5 px-0"
+                            />
+                            <button type="button" id="btnClearUrl" class="text-zinc-500 hover:text-zinc-300 p-1" title="Clear input">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="submit" id="submitBtn" class="btn-primary-action px-5 py-2.5 sm:w-auto w-full">
+                            <span class="btn-text">Reap Website</span>
+                            <svg class="btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Quick Sample Chips -->
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-zinc-400">
+                        <span class="text-zinc-500 mr-1 text-[11px] font-medium">Quick examples:</span>
+                        <button type="button" class="sample-chip px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-standard" data-url="https://tailwindcss.com">tailwindcss.com</button>
+                        <button type="button" class="sample-chip px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-standard" data-url="https://vite.dev">vite.dev</button>
+                        <button type="button" class="sample-chip px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-standard" data-url="https://github.com">github.com</button>
+                        <button type="button" class="sample-chip px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-standard" data-url="https://playwright.dev">playwright.dev</button>
+                    </div>
+
+                    <!-- Accordion Toggle Button -->
+                    <div class="pt-2 border-t border-white/[0.06]">
+                        <button type="button" id="optionsToggle" class="w-full flex items-center justify-between text-xs text-zinc-400 hover:text-zinc-200 py-1 transition-standard">
+                            <div class="flex items-center gap-2">
+                                <svg class="text-zinc-500" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                <span class="font-medium text-zinc-300">Advanced Engine Settings</span>
+                                <span class="text-zinc-500 font-mono text-[11px]" id="optionsSummary">(Unified Hybrid • Entire Site • Desktop • All Media • 500M)</span>
+                            </div>
+                            <svg id="optionsChevron" class="text-zinc-500 transform transition-transform duration-200" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Expandable Drawer Body -->
+                    <div id="optionsBody" class="hidden pt-3 border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        
+                        <!-- Col 1: Engine Architecture & Crawl Depth -->
+                        <div class="space-y-3 p-3 rounded-lg bg-black/20 border border-white/[0.06]">
+                            <div class="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] pb-1 border-b border-white/[0.06]">
+                                1. Engine & Crawl Depth
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Core Engine</label>
+                                <select id="engineModeSelect" class="modern-select w-full">
+                                    <option value="hybrid" selected>🚀 Unified Ultra Hybrid (Merged Wget + Chrome)</option>
+                                    <option value="wget">⚡ Wget Turbo Mirror (Rapid HTTP GET)</option>
+                                    <option value="puppeteer">🤖 Puppeteer Browser (Chromium DOM)</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Crawl Depth Scope</label>
+                                <select id="crawlMode" class="modern-select w-full">
+                                    <option value="true" selected>Entire Website (Multi-Page Linking)</option>
+                                    <option value="false">Single Page Only</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Max Pages Limit</label>
+                                <select id="maxPagesSelect" class="modern-select w-full">
+                                    <option value="10">10 Pages (Fast)</option>
+                                    <option value="20" selected>20 Pages (Balanced)</option>
+                                    <option value="35">35 Pages (Deep)</option>
+                                    <option value="50">50 Pages (Extensive)</option>
+                                    <option value="100">100+ Pages (Full Portal)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Col 2: Assets & Limits -->
+                        <div class="space-y-3 p-3 rounded-lg bg-black/20 border border-white/[0.06]">
+                            <div class="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] pb-1 border-b border-white/[0.06]">
+                                2. Viewport & Media Filters
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Target Viewport</label>
+                                <select id="viewportSelect" class="modern-select w-full">
+                                    <option value="desktop" selected>Desktop HD (1920 × 1080)</option>
+                                    <option value="laptop">MacBook (1440 × 900)</option>
+                                    <option value="tablet">iPad Tablet (768 × 1024)</option>
+                                    <option value="mobile">iPhone Mobile (375 × 812)</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Asset Harvest Filter</label>
+                                <select id="mediaFilterSelect" class="modern-select w-full">
+                                    <option value="all" selected>All Assets + Videos + SVGs + Fonts</option>
+                                    <option value="web-only">Web Assets Only (Skip Heavy Video/Audio)</option>
+                                    <option value="lean">Lightweight Core (HTML + CSSOM + JS Only)</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Download Quota Limit</label>
+                                <select id="quotaSelect" class="modern-select w-full">
+                                    <option value="150m">150 MB (Small Sites)</option>
+                                    <option value="500m" selected>500 MB (Standard Web Experience)</option>
+                                    <option value="1500m">1.5 GB (High-Res Media)</option>
+                                    <option value="0">Unlimited (Unrestricted)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Col 3: Chrome Dynamic Synthesis & Auth -->
+                        <div class="space-y-3 p-3 rounded-lg bg-black/20 border border-white/[0.06]">
+                            <div class="font-semibold text-zinc-300 uppercase tracking-wider text-[11px] pb-1 border-b border-white/[0.06]">
+                                3. Animation Pre-Warm & Auth
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1">
+                                <div>
+                                    <div class="font-medium text-zinc-300">Dynamic Pre-Warming</div>
+                                    <div class="text-[11px] text-zinc-500">Auto-scroll to wake animations</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="prewarmCheckbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Animation Settle Delay</label>
+                                <select id="settleDelay" class="modern-select w-full">
+                                    <option value="1000">1.0s (Fast Settle)</option>
+                                    <option value="2500" selected>2.5s (Standard Framer/GSAP)</option>
+                                    <option value="4000">4.0s (Deep Interactive 3D)</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">User-Agent Profile</label>
+                                <select id="userAgentSelect" class="modern-select w-full">
+                                    <option value="desktop-win" selected>Chrome Windows 11</option>
+                                    <option value="mac-safari">Safari macOS Sonoma</option>
+                                    <option value="googlebot">Googlebot SEO Bot</option>
+                                    <option value="mobile-android">Mobile Chrome Android</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-zinc-400 font-medium block">Auth Cookie / Header (Optional)</label>
+                                <input type="text" id="customHeadersInput" class="modern-input w-full text-xs" placeholder="Cookie: session=... or Bearer token">
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            <!-- 3. REAL-TIME PROGRESS & TERMINAL CONSOLE -->
+            <section id="progressSection" class="surface-card p-4 space-y-3 hidden">
+                <!-- Top progress bar line -->
+                <div class="flex items-center justify-between text-xs pb-2 border-b border-white/[0.06]">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                        <span class="font-medium text-white" id="activeUrlText">Reaping target...</span>
+                    </div>
+                    <span class="font-mono text-zinc-400" id="progressPercent">0%</span>
+                </div>
+
+                <div class="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+                    <div id="progressBarFill" class="bg-blue-500 h-full transition-all duration-300" style="width: 5%;"></div>
+                </div>
+
+                <!-- 5-Stage Stepper Ribbon -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-b border-white/[0.06] pb-3" id="stepperRibbon">
+                    <div class="stepper-item active" id="step1">
+                        <div class="stepper-circle">1</div>
+                        <span>1. Resolve</span>
+                    </div>
+                    <div class="stepper-item" id="step2">
+                        <div class="stepper-circle">2</div>
+                        <span>2. Harvest</span>
+                    </div>
+                    <div class="stepper-item" id="step3">
+                        <div class="stepper-circle">3</div>
+                        <span>3. Pre-Warm</span>
+                    </div>
+                    <div class="stepper-item" id="step4">
+                        <div class="stepper-circle">4</div>
+                        <span>4. Shield</span>
+                    </div>
+                    <div class="stepper-item" id="step5">
+                        <div class="stepper-circle">5</div>
+                        <span>5. Package</span>
+                    </div>
+                </div>
+
+                <!-- Terminal Console -->
+                <div class="terminal-window">
+                    <div class="terminal-header-bar text-xs text-zinc-400">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                            <span class="ml-2 font-mono text-[11px] text-zinc-500">execution.log</span>
+                        </div>
+                        <div class="text-[11px] text-zinc-500 font-mono">live telemetry</div>
+                    </div>
+                    <div id="terminalLogs" class="terminal-scroll-area font-mono text-xs text-zinc-300 space-y-1">
+                        <!-- Streamed log lines appear here -->
+                    </div>
+                </div>
+
+                <!-- Live Metrics Ribbon -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs font-mono text-zinc-400">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span>Pages: <strong class="text-white" id="statPages">1</strong></span>
+                        <span>•</span>
+                        <span>CSS: <strong class="text-white" id="statCss">0</strong></span>
+                        <span>•</span>
+                        <span>JS: <strong class="text-white" id="statJs">0</strong></span>
+                        <span>•</span>
+                        <span>Images: <strong class="text-white" id="statImages">0</strong></span>
+                        <span>•</span>
+                        <span>Fonts: <strong class="text-white" id="statFonts">0</strong></span>
+                    </div>
+                    <div>
+                        <span>Harvested: <strong class="text-blue-400" id="statSize">0 KB</strong></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. CLONE RESULT & SANDBOX PREVIEW -->
+            <section id="resultSection" class="space-y-4 hidden">
+                <!-- Result Banner -->
+                <div class="surface-card p-5 space-y-4 border-emerald-500/30">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-base font-semibold text-white" id="resultTitle">Cloned Website Title</h2>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">100% Offline Ready</span>
+                                </div>
+                                <a id="resultUrl" class="text-xs text-zinc-400 hover:text-white transition-colors truncate block max-w-md" href="#" target="_blank" rel="noopener">https://...</a>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <a id="btnDownload" href="#" download class="btn-primary-action text-xs flex-1 sm:flex-initial">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Download ZIP Archive</span>
+                            </a>
+                            <button id="btnOpenPreview" type="button" class="btn-secondary-action text-xs">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                                <span>Live Preview</span>
+                            </button>
+                            <a id="btnNewTab" href="#" target="_blank" class="btn-ghost-action text-xs">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                                <span>New Tab</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 pt-2 border-t border-white/[0.06] text-center">
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-white" id="resPagesCount">1</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">Pages</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-white" id="resStylesheets">0</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">CSS</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-white" id="resImages">0</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">Images</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-white" id="resWebFonts">0</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">Fonts</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-white" id="resTotalAssets">0</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">Assets</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div class="font-mono text-base font-semibold text-blue-400" id="resArchiveSize">0 MB</div>
+                            <div class="text-[10px] text-zinc-500 uppercase font-medium">Size</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Click Offline Server Instructions -->
+                <div class="surface-card p-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 border-b border-white/[0.06] gap-2">
+                        <div class="flex items-center gap-2">
+                            <svg class="text-zinc-400" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+                            </svg>
+                            <span class="text-xs font-semibold text-zinc-200">1-Click Local Execution</span>
+                            <span class="text-[11px] text-zinc-500">(Embedded inside your downloaded ZIP package)</span>
+                        </div>
+
+                        <!-- OS Tabs -->
+                        <div class="flex items-center gap-1 bg-black/30 p-0.5 rounded-lg border border-white/10 text-xs">
+                            <button id="tab-win" class="px-2.5 py-1 rounded bg-white/10 text-white font-medium" onclick="selectLauncher('win')">Windows (run.bat)</button>
+                            <button id="tab-mac" class="px-2.5 py-1 rounded text-zinc-400 hover:text-white" onclick="selectLauncher('mac')">macOS / Linux (run.sh)</button>
+                            <button id="tab-node" class="px-2.5 py-1 rounded text-zinc-400 hover:text-white" onclick="selectLauncher('node')">Node Server (server.js)</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-black/40 rounded-lg p-2.5 border border-white/[0.08] font-mono text-xs">
+                        <div class="flex items-center gap-2 overflow-x-auto text-zinc-300">
+                            <span class="text-emerald-400 font-bold select-none">$</span>
+                            <code id="launcher-cmd-text">run.bat</code>
+                        </div>
+                        <button id="btnCopyLauncher" onclick="copyLauncherCommand()" class="btn-secondary-action px-2.5 py-1 text-xs shrink-0 ml-3">
+                            <svg id="copy-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copy-label">Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- In-App Interactive Sandbox -->
+                <div id="previewContainer" class="surface-card overflow-hidden hidden">
+                    <div class="flex flex-wrap items-center justify-between px-3.5 py-2 bg-black/30 border-b border-white/[0.06] gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                            </div>
+
+                            <!-- Viewport Width Buttons -->
+                            <div class="flex items-center bg-black/40 rounded-lg p-0.5 border border-white/10 text-xs font-mono">
+                                <button id="vp-desktop" class="px-2 py-0.5 rounded bg-white/10 text-white font-medium" onclick="setPreviewWidth('100%')">Desktop (100%)</button>
+                                <button id="vp-tablet" class="px-2 py-0.5 rounded text-zinc-400 hover:text-white" onclick="setPreviewWidth('768px')">Tablet (768px)</button>
+                                <button id="vp-mobile" class="px-2 py-0.5 rounded text-zinc-400 hover:text-white" onclick="setPreviewWidth('375px')">Mobile (375px)</button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="btnReloadPreview" class="btn-ghost-action text-xs px-2" type="button">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                </svg>
+                                <span>Reload</span>
+                            </button>
+                            <button id="btnClosePreview" class="btn-ghost-action text-xs px-2 text-zinc-400 hover:text-rose-400" type="button">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                <span>Close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/60 p-3 md:p-6 flex justify-center items-center min-h-[500px]">
+                        <div id="preview-canvas-container" class="w-full transition-all duration-300 rounded-lg border border-white/10 bg-white overflow-hidden shadow-inner h-[600px]">
+                            <iframe id="previewFrame" title="Offline Clone Preview" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. RECENT CLONES LIBRARY -->
+            <section class="space-y-3 pt-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-zinc-200">Recent Harvest History</h3>
+                        <p class="text-xs text-zinc-500">Previously cloned websites stored on this machine</p>
+                    </div>
+                    <button id="btnRefreshHistory" class="btn-ghost-action text-xs" type="button">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+
+                <div id="historyGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ================= FOOTER ================= -->
+        <footer class="border-t border-white/[0.08] py-6 text-center text-xs text-zinc-500 font-mono mt-auto">
+            Website Reaper • Autonomous Full-Fidelity Web Cloner & Offline Runner
+        </footer>
+    </div>
+
+    <!-- ================= HOW TO RUN MODAL ================= -->
+    <div id="howToRunModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="surface-card max-w-xl w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+                <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>How to Run Your Cloned Website</span>
+                </h3>
+                <button id="btnCloseModal" class="text-zinc-500 hover:text-white p-1">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-zinc-300">
+                <p>Every downloaded ZIP package is 100% self-contained with all CSS, dynamic JavaScript, Web Fonts, and images. Because modern browsers restrict Web Workers and dynamic CSSOM when loading directly over <code class="text-zinc-400 bg-white/5 px-1 py-0.5 rounded font-mono">file://</code>, a local server script is automatically included in every ZIP:</p>
+
+                <div class="space-y-2 pt-1">
+                    <div class="p-3 rounded-lg bg-black/20 border border-white/[0.06] space-y-1">
+                        <div class="font-semibold text-white">1. Windows 1-Click</div>
+                        <p class="text-zinc-400">Extract the ZIP file and double click <strong class="text-white">run.bat</strong>. It automatically starts a local server on port 3000 and opens your browser.</p>
+                    </div>
+
+                    <div class="p-3 rounded-lg bg-black/20 border border-white/[0.06] space-y-1">
+                        <div class="font-semibold text-white">2. macOS / Linux</div>
+                        <p class="text-zinc-400">Open a terminal in the extracted folder and run: <br><code class="text-white font-mono bg-black/40 px-1 py-0.5 rounded mt-1 inline-block">chmod +x run.sh &amp;&amp; ./run.sh</code></p>
+                    </div>
+
+                    <div class="p-3 rounded-lg bg-black/20 border border-white/[0.06] space-y-1">
+                        <div class="font-semibold text-white">3. Zero-Dependency Node Server</div>
+                        <p class="text-zinc-400">Run <code class="text-white font-mono bg-black/40 px-1 py-0.5 rounded">node server.js</code> using built-in Node HTTP with zero npm installs needed.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button id="btnGotItModal" class="btn-primary-action text-xs px-4 py-2">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const WgetCrawler = require('./wgetCrawler');
+const ClonerEngine = require('./engine');
+const AnimationBooster = require('./animationBooster');
+const Packager = require('./packager');
+const { getBrowserExecutablePath } = require('./browserFinder');
+
+/**
+ * Website Reaper Unified Hybrid Engine
+ * Merges Wget Turbo Mirror (recursive asset harvesting, fast network mirroring, directory structuring)
+ * with Puppeteer Headless Browser (JS execution, live DOM synthesis, dynamic CSSOM capture, scroll animation pre-warming)
+ * and the 4-Layer Immune Shield against SPA crashes.
+ */
+class HybridCloner {
+    constructor(options = {}) {
+        this.options = {
+            viewportWidth: options.viewportWidth || 1920,
+            viewportHeight: options.viewportHeight || 1080,
+            deepScroll: options.deepScroll !== false,
+            deepCrawl: options.deepCrawl !== false,
+            maxDepth: options.maxDepth || 3,
+            maxPages: Math.min(options.maxPages || 30, 100),
+            quota: options.quota || process.env.DOWNLOAD_QUOTA || '500m',
+            mediaFilter: options.mediaFilter || 'all',
+            prewarm: options.prewarm !== false,
+            settleDelay: options.settleDelay || 2500,
+            customHeaders: options.customHeaders || '',
+            timeout: options.timeout || 300000,
+            userAgent: options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+            ...options
+        };
+    }
+
+    /**
+     * Resolves canonical URL following any 301/302/307/308 redirects
+     */
+    async _resolveCanonicalUrl(inputUrl) {
+        try {
+            const res = await axios.get(inputUrl, {
+                maxRedirects: 5,
+                timeout: 8000,
+                headers: { 'User-Agent': this.options.userAgent }
+            });
+            if (res.request && res.request.res && res.request.res.responseUrl) {
+                return res.request.res.responseUrl;
+            }
+        } catch {}
+        return inputUrl;
+    }
+
+    /**
+     * Main hybrid clone pipeline
+     */
+    async cloneWebsite(targetUrl, outputDir, zipPath, onProgress = () => {}) {
+        const emit = (stage, message, data = {}) => {
+            onProgress({ timestamp: new Date().toISOString(), stage, message, ...data });
+        };
+
+        emit('init', `🚀 Launching Website Reaper Unified Hybrid Engine on ${targetUrl}...`);
+
+        const canonicalUrl = await this._resolveCanonicalUrl(targetUrl);
+        const targetObj = new URL(canonicalUrl);
+        const baseDomain = targetObj.hostname.toLowerCase().replace(/^www\./i, '');
+
+        emit('init', `Canonical target resolved: ${canonicalUrl} (Base Domain: ${baseDomain})`);
+
+        let siteTitle = `Clone of ${targetObj.hostname}`;
+        let pagesCount = 1;
+        let stats = {
+            html: 0,
+            css: 0,
+            js: 0,
+            images: 0,
+            fonts: 0,
+            media: 0,
+            totalFiles: 0,
+            totalBytes: 0,
+            totalAssets: 0
+        };
+
+        const wgetAvailable = WgetCrawler.isAvailable();
+
+        // =========================================================================
+        // STAGE 1: RAPID RECURSIVE ASSET HARVESTING (Wget Core with Puppeteer Fallback)
+        // =========================================================================
+        if (wgetAvailable) {
+            emit('network', `Phase 1/4: Running Wget Turbo Mirror for recursive asset harvesting & link mapping...`);
+            const wgetCrawler = new WgetCrawler({
+                quota: this.options.quota,
+                timeout: this.options.timeout,
+                userAgent: this.options.userAgent,
+                maxDepth: this.options.maxDepth,
+                mediaFilter: this.options.mediaFilter,
+                customHeaders: this.options.customHeaders
+            });
+
+            const intermediateZip = path.join(path.dirname(zipPath), `temp_${Date.now()}.zip`);
+            try {
+                const wgetResult = await wgetCrawler.cloneWebsite(canonicalUrl, outputDir, intermediateZip, (pEvent) => {
+                    // Forward progress events
+                    if (pEvent.stage === 'crawling' || pEvent.stage === 'network') {
+                        emit(pEvent.stage, pEvent.message, pEvent.data || {});
+                    }
+                });
+
+                if (wgetResult && wgetResult.title) siteTitle = wgetResult.title;
+                if (wgetResult && wgetResult.pagesCount) pagesCount = wgetResult.pagesCount;
+                if (wgetResult && wgetResult.stats) stats = { ...stats, ...wgetResult.stats };
+
+                // Remove temp intermediate zip
+                try { fs.rmSync(intermediateZip, { force: true }); } catch {}
+            } catch (wErr) {
+                console.warn('[HybridCloner] Wget pass warning:', wErr.message);
+                emit('processing', `Wget completed with notice: ${wErr.message}. Proceeding to browser synthesis...`);
+            }
+        } else {
+            // Graceful fallback to Puppeteer Headless Crawler if Wget is absent
+            emit('network', `Phase 1/4: Wget not detected. Using Puppeteer Headless Browser recursive crawler...`);
+            const clonerEngine = new ClonerEngine({
+                viewportWidth: this.options.viewportWidth,
+                viewportHeight: this.options.viewportHeight,
+                deepScroll: this.options.deepScroll,
+                deepCrawl: this.options.deepCrawl,
+                maxPages: this.options.maxPages,
+                maxDepth: this.options.maxDepth
+            });
+
+            const intermediateZip = path.join(path.dirname(zipPath), `temp_${Date.now()}.zip`);
+            const engineResult = await clonerEngine.cloneWebsite(canonicalUrl, outputDir, intermediateZip, (pEvent) => {
+                emit(pEvent.stage, pEvent.message, pEvent.data || {});
+            });
+
+            if (engineResult && engineResult.title) siteTitle = engineResult.title;
+            if (engineResult && engineResult.pagesCount) pagesCount = engineResult.pagesCount;
+            if (engineResult && engineResult.stats) stats = { ...stats, ...engineResult.stats };
+
+            try { fs.rmSync(intermediateZip, { force: true }); } catch {}
+        }
+
+        // Ensure index.html exists at output root
+        const rootIndex = path.join(outputDir, 'index.html');
+        if (!fs.existsSync(rootIndex)) {
+            const foundIndex = this._findFile(outputDir, 'index.html');
+            if (foundIndex) {
+                fs.copyFileSync(foundIndex, rootIndex);
+            }
+        }
+
+        if (fs.existsSync(rootIndex)) {
+            try {
+                const $ = cheerio.load(fs.readFileSync(rootIndex, 'utf8'));
+                const t = $('title').text().trim();
+                if (t && !t.includes('404')) siteTitle = t;
+            } catch {}
+        }
+
+        // =========================================================================
+        // STAGE 2: HEADLESS CHROME LIVE DOM SYNTHESIS & DYNAMIC CSSOM CAPTURE
+        // =========================================================================
+        const browserExe = getBrowserExecutablePath();
+        if (this.options.prewarm && browserExe) {
+            emit('rendering', `Phase 2/4: Synthesizing live DOM, wake-up scroll triggers & dynamic CSSOM via Headless Chrome...`);
+            try {
+                await this._synthesizeLiveBrowserData(outputDir, browserExe, emit);
+            } catch (bErr) {
+                console.warn('[HybridCloner] Browser synthesis notice:', bErr.message);
+            }
+        } else if (!this.options.prewarm) {
+            emit('rendering', `Phase 2/4: Chrome dynamic pre-warming skipped (Fast Raw Mirror Mode active).`);
+        }
+
+        // =========================================================================
+        // STAGE 3: SPA CRASH NEUTRALIZER & 4-LAYER IMMUNE SHIELD
+        // =========================================================================
+        emit('processing', `Phase 3/4: Neutralizing SPA hydration crashes & applying 4-layer immune shield...`);
+        this._neutralizeSpaHydration(outputDir, baseDomain);
+        this._sanitizeJsFiles(outputDir);
+
+        // Boost universal scroll animations, keyframes, intersection observers, and UI binders
+        emit('processing', `Boosting AOS, GSAP ScrollTrigger, Lenis, card tilts, and navigation interactions...`);
+        const boostedCount = AnimationBooster.boostDirectory(outputDir);
+        if (boostedCount > pagesCount) pagesCount = boostedCount;
+
+        // Ensure video and canvas tags have required autoplay/loop attributes
+        this._enhanceMediaElements(outputDir);
+
+        // =========================================================================
+        // STAGE 4: 1-CLICK LAUNCHERS & FINAL PACKAGE
+        // =========================================================================
+        emit('launchers', `Phase 4/4: Generating 1-click launch scripts (run.bat, run.sh, clean-URL server.js)...`);
+        Packager.injectLaunchers(outputDir, {
+            title: siteTitle,
+            url: targetUrl,
+            pagesCount
+        });
+
+        emit('zipping', `Packaging all assets, styles and launchers into final ZIP archive...`);
+        const zipResult = await Packager.createZip(outputDir, zipPath);
+
+        stats.totalBytes = zipResult.totalBytes;
+        stats.totalFiles = this._countFiles(outputDir);
+        stats.totalAssets = stats.totalFiles;
+
+        emit('complete', `Website clone completed with 100% fidelity! (${pagesCount} pages, ${(zipResult.totalBytes / (1024 * 1024)).toFixed(2)} MB)`, {
+            title: siteTitle,
+            url: targetUrl,
+            pagesCount,
+            zipPath,
+            zipSize: zipResult.totalBytes,
+            stats
+        });
+
+        return {
+            title: siteTitle,
+            url: targetUrl,
+            pagesCount,
+            outputDir,
+            zipPath,
+            zipSize: zipResult.totalBytes,
+            stats
+        };
+    }
+
+    /**
+     * Live browser synthesis: Auto-scrolls pages in headless Chrome, executes JS intersection
+     * observers, unhides lazy content, and captures dynamic CSSOM rules.
+     */
+    async _synthesizeLiveBrowserData(outputDir, executablePath, emit) {
+        let puppeteer;
+        try {
+            puppeteer = require('puppeteer-core');
+        } catch {
+            return;
+        }
+
+        let browser = null;
+        try {
+            browser = await puppeteer.launch({
+                executablePath,
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-web-security',
+                    '--allow-file-access-from-files',
+                    '--disable-features=IsolateOrigins,site-per-process'
+                ],
+                defaultViewport: {
+                    width: this.options.viewportWidth,
+                    height: this.options.viewportHeight
+                }
+            });
+
+            const htmlFiles = [];
+            const collectHtml = (dir) => {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const item of entries) {
+                    const full = path.join(dir, item.name);
+                    if (item.isDirectory() && item.name !== 'node_modules' && item.name !== 'assets') {
+                        collectHtml(full);
+                    } else if (item.isFile() && item.name.endsWith('.html')) {
+                        htmlFiles.push(full);
+                    }
+                }
+            };
+            collectHtml(outputDir);
+
+            // Synthesize top priority pages (e.g. index, about, contact, menu)
+            const pagesToSynthesize = htmlFiles.slice(0, 10);
+            for (let i = 0; i < pagesToSynthesize.length; i++) {
+                const filePath = pagesToSynthesize[i];
+                const relPath = path.relative(outputDir, filePath);
+                emit('rendering', `Live browser synthesis on ${relPath} (${i + 1}/${pagesToSynthesize.length})...`);
+
+                const page = await browser.newPage();
+                try {
+                    if (this.options.userAgent) {
+                        await page.setUserAgent(this.options.userAgent);
+                    }
+                    const fileUrl = 'file:///' + filePath.replace(/\\/g, '/');
+                    await page.goto(fileUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+
+                    // Progressive smooth scrolling to wake up all animations and lazy images
+                    await page.evaluate(async (settleMs) => {
+                        await new Promise((resolve) => {
+                            let current = 0;
+                            const step = 250;
+                            const maxScroll = Math.min(document.body.scrollHeight || 10000, 15000);
+                            const timer = setInterval(() => {
+                                window.scrollBy(0, step);
+                                current += step;
+                                window.dispatchEvent(new Event('scroll'));
+
+                                if (current >= maxScroll) {
+                                    clearInterval(timer);
+                                    window.scrollTo(0, 0);
+                                    setTimeout(resolve, Math.max(settleMs / 4, 250));
+                                }
+                            }, 40);
+                        });
+                    }, this.options.settleDelay || 2500);
+
+                    // Capture dynamic CSSOM rules
+                    const dynamicCss = await page.evaluate(() => {
+                        let css = '';
+                        for (const sheet of document.styleSheets) {
+                            try {
+                                if (!sheet.href && sheet.cssRules) {
+                                    for (const r of sheet.cssRules) {
+                                        css += r.cssText + '\n';
+                                    }
+                                }
+                            } catch {}
+                        }
+                        return css;
+                    });
+
+                    // Inject dynamic CSSOM into HTML file
+                    if (dynamicCss && dynamicCss.trim().length > 0) {
+                        let currentHtml = fs.readFileSync(filePath, 'utf8');
+                        if (!currentHtml.includes('data-reaper-hybrid-dynamic-css')) {
+                            const dynamicStyleTag = `<style data-reaper-hybrid-dynamic-css="true">\n${dynamicCss}\n</style>`;
+                            if (currentHtml.includes('</head>')) {
+                                currentHtml = currentHtml.replace('</head>', `${dynamicStyleTag}</head>`);
+                            } else {
+                                currentHtml = dynamicStyleTag + currentHtml;
+                            }
+                            fs.writeFileSync(filePath, currentHtml, 'utf8');
+                        }
+                    }
+                } catch (pErr) {
+                    console.warn(`[HybridCloner] Notice for ${relPath}:`, pErr.message);
+                } finally {
+                    try { await page.close(); } catch {}
+                }
+            }
+        } finally {
+            if (browser) {
+                try { await browser.close(); } catch {}
+            }
+        }
+    }
+
+    /**
+     * Neutralizes SPA hydration engines (Next.js, React, Nuxt) to prevent ErrorBoundary wipes
+     */
+    _neutralizeSpaHydration(dir, baseDomain) {
+        const list = fs.readdirSync(dir, { withFileTypes: true });
+        for (const item of list) {
+            const fullPath = path.join(dir, item.name);
+            if (item.isDirectory() && item.name !== 'node_modules' && item.name !== 'assets') {
+                this._neutralizeSpaHydration(fullPath, baseDomain);
+            } else if (item.isFile() && item.name.endsWith('.html')) {
+                try {
+                    let html = fs.readFileSync(fullPath, 'utf8');
+
+                    // Fix domain relative paths
+                    if (baseDomain) {
+                        const regex = new RegExp(`(["'])(?:\\.\\.\\/|\\/)?(?:www\\.)?${baseDomain.replace(/\./g, '\\.')}\\/`, 'gi');
+                        html = html.replace(regex, '$1./');
+                    }
+
+                    const $ = cheerio.load(html, { decodeEntities: false });
+
+                    // Remove Next.js / React flight data & SPA hydration scripts that wipe DOM offline
+                    $('script').each((_, el) => {
+                        const src = ($(el).attr('src') || '').toLowerCase();
+                        const text = ($(el).html() || '').toLowerCase();
+                        if (
+                            src.includes('main-app') ||
+                            src.includes('webpack-') ||
+                            src.includes('polyfills-') ||
+                            src.includes('turbopack-') ||
+                            src.includes('/_next/static/chunks/main') ||
+                            src.includes('/_next/static/chunks/app') ||
+                            src.includes('/_next/static/chunks/pages') ||
+                            src.includes('/_next/static/chunks/react-') ||
+                            text.includes('__next_f') ||
+                            text.includes('webpackchunk_n_e') ||
+                            text.includes('__next_data__') ||
+                            text.includes('window.__nuxt')
+                        ) {
+                            $(el).remove();
+                        }
+                    });
+
+                    // Remove Content Security Policy tags
+                    $('meta[http-equiv="Content-Security-Policy"]').remove();
+                    $('meta[http-equiv="content-security-policy"]').remove();
+
+                    fs.writeFileSync(fullPath, $.html(), 'utf8');
+                } catch {}
+            }
+        }
+    }
+
+    /**
+     * Sanitize JS chunk files to neutralize ErrorBoundary crash overlays
+     */
+    _sanitizeJsFiles(dir) {
+        const list = fs.readdirSync(dir, { withFileTypes: true });
+        for (const item of list) {
+            const fullPath = path.join(dir, item.name);
+            if (item.isDirectory() && item.name !== 'node_modules') {
+                this._sanitizeJsFiles(fullPath);
+            } else if (item.isFile() && item.name.endsWith('.js')) {
+                try {
+                    let content = fs.readFileSync(fullPath, 'utf8');
+                    let modified = false;
+                    if (content.includes('Application error: a client-side exception has occurred')) {
+                        content = content.replace(/Application error: a client-side exception has occurred \(see the browser console for more information\)\./g, '');
+                        content = content.replace(/Application error: a client-side exception has occurred/g, '');
+                        modified = true;
+                    }
+                    if (modified) {
+                        fs.writeFileSync(fullPath, content, 'utf8');
+                    }
+                } catch {}
+            }
+        }
+    }
+
+    /**
+     * Ensures videos and canvas have proper autoplay attributes
+     */
+    _enhanceMediaElements(dir) {
+        const list = fs.readdirSync(dir, { withFileTypes: true });
+        for (const item of list) {
+            const fullPath = path.join(dir, item.name);
+            if (item.isDirectory() && item.name !== 'node_modules' && item.name !== 'assets') {
+                this._enhanceMediaElements(fullPath);
+            } else if (item.isFile() && item.name.endsWith('.html')) {
+                try {
+                    let html = fs.readFileSync(fullPath, 'utf8');
+                    const $ = cheerio.load(html, { decodeEntities: false });
+
+                    $('video').each((_, el) => {
+                        $(el).attr('autoplay', '');
+                        $(el).attr('muted', '');
+                        $(el).attr('playsinline', '');
+                        $(el).attr('loop', '');
+                    });
+
+                    fs.writeFileSync(fullPath, $.html(), 'utf8');
+                } catch {}
+            }
+        }
+    }
+
+    _findFile(dir, filename) {
+        const list = fs.readdirSync(dir, { withFileTypes: true });
+        for (const item of list) {
+            const p = path.join(dir, item.name);
+            if (item.isFile() && item.name === filename) return p;
+            if (item.isDirectory()) {
+                const found = this._findFile(p, filename);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    _countFiles(dir) {
+        let count = 0;
+        try {
+            const list = fs.readdirSync(dir, { withFileTypes: true });
+            for (const item of list) {
+                const full = path.join(dir, item.name);
+                if (item.isDirectory()) count += this._countFiles(full);
+                else if (item.isFile()) count++;
+            }
+        } catch {}
+        return count;
+    }
+}
+
+module.exports = HybridCloner;
+

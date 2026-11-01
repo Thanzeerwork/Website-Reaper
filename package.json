@@ -1,0 +1,22 @@
+{
+  "name": "website-reaper",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "axios": "^1.21.0",
+    "cheerio": "^1.2.0",
+    "express": "^5.3.0",
+    "mime-types": "^3.0.2",
+    "puppeteer-core": "^25.16.0"
+  }
+}

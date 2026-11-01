@@ -1,0 +1,373 @@
+/* Website Reaper — Modern Professional Developer Design System
+   Inspired by Vercel, Linear, Raycast & Supabase design language
+*/
+
+:root {
+    --bg-page: #09090b;
+    --bg-surface: #121216;
+    --bg-surface-hover: #18181f;
+    --bg-surface-elevated: #1a1a22;
+    --bg-input: #0f0f13;
+    --bg-terminal: #0c0c10;
+    
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-medium: rgba(255, 255, 255, 0.12);
+    --border-hover: rgba(255, 255, 255, 0.22);
+    --border-focus: rgba(255, 255, 255, 0.35);
+
+    --text-main: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --text-faint: #71717a;
+    
+    --accent: #ffffff;
+    --accent-on-accent: #09090b;
+    --brand-blue: #3b82f6;
+    --brand-blue-hover: #2563eb;
+    --brand-emerald: #10b981;
+    --brand-amber: #f59e0b;
+    --brand-rose: #f43f5e;
+    
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-full: 9999px;
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-display: 'Plus Jakarta Sans', var(--font-sans);
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    --shadow-elevated: 0 12px 36px -4px rgba(0, 0, 0, 0.55);
+}
+
+/* Light Theme */
+html.light {
+    --bg-page: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    --bg-surface-elevated: #f8fafc;
+    --bg-input: #ffffff;
+    --bg-terminal: #0f172a;
+    
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-medium: rgba(0, 0, 0, 0.14);
+    --border-hover: rgba(0, 0, 0, 0.25);
+    --border-focus: rgba(0, 0, 0, 0.4);
+
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-faint: #94a3b8;
+    
+    --accent: #0f172a;
+    --accent-on-accent: #ffffff;
+    --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+    --shadow-elevated: 0 12px 30px -4px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle background illumination (Linear / Vercel style) */
+.bg-radial-gradient {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 600px;
+    background: radial-gradient(ellipse at 50% -10%, rgba(59, 130, 246, 0.08), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+}
+html.light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Smooth transitions */
+.transition-standard {
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Card surfaces */
+.surface-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.surface-card:hover {
+    border-color: var(--border-medium);
+}
+
+/* Input Fields */
+.modern-input {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.modern-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+/* Modern Select Dropdown */
+.modern-select {
+    appearance: none;
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    padding: 8px 32px 8px 12px;
+    outline: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    transition: all 0.15s ease;
+}
+
+.modern-select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+/* Modern Buttons */
+.btn-primary-action {
+    background-color: var(--accent);
+    color: var(--accent-on-accent);
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 9px 18px;
+    border-radius: var(--radius-md);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow-subtle);
+}
+
+.btn-primary-action:hover {
+    filter: brightness(0.92);
+    transform: translateY(-0.5px);
+}
+
+.btn-primary-action:active {
+    transform: translateY(0.5px);
+    filter: brightness(0.85);
+}
+
+.btn-secondary-action {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-medium);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary-action:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-hover);
+}
+
+.btn-ghost-action {
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-ghost-action:hover {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Switch Toggle (iOS style) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: 0.2s;
+    border-radius: 9999px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--brand-blue);
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+/* Stepper Bar */
+.stepper-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.stepper-item.active {
+    color: var(--text-main);
+}
+
+.stepper-item.completed {
+    color: var(--brand-emerald);
+}
+
+.stepper-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+}
+
+.stepper-item.active .stepper-circle {
+    background-color: var(--text-main);
+    color: var(--accent-on-accent);
+}
+
+.stepper-item.completed .stepper-circle {
+    background-color: var(--brand-emerald);
+    color: white;
+}
+
+/* Terminal Console (Vercel / GitHub Actions style) */
+.terminal-window {
+    background-color: var(--bg-terminal);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    font-family: var(--font-mono);
+}
+
+.terminal-header-bar {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.terminal-scroll-area {
+    padding: 12px 14px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin-fast {
+    animation: spin 0.75s linear infinite;
+}
