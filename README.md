@@ -1,17 +1,54 @@
 # ⚡ Website Reaper
 
-> **Autonomous Full-Fidelity Website Cloner & Offline Package Generator**  
-> Mirror full-fidelity web apps, reconstruct dynamic CSSOM animations, salvage runtime keyframes, neutralize client SPA crashes, and bundle 100% offline-runnable archives with native local servers.
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Chromium-Headless-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome" />
+  <img src="https://img.shields.io/badge/WebGL-3D%20Ready-990000?style=for-the-badge&logo=webgl&logoColor=white" alt="WebGL 3D" />
+  <img src="https://img.shields.io/badge/React%20Bits-Interactive-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React Bits" />
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License" />
+</p>
+
+<h3 align="center">Autonomous Full-Fidelity Website Cloner & Offline Package Generator</h3>
+
+<p align="center">
+  Mirror modern web applications with 100% fidelity: dynamic DOM hydration, CSSOM animations, WebGL & 3D models, React Bits shaders, Chakra UI components, web fonts, and assets — packed into a 1-click standalone offline bundle.
+</p>
 
 ---
 
-## 🌟 Highlights
+## 🌟 Key Highlights
 
-- **🚀 Unified Ultra Hybrid Engine**: Merges Wget's recursive multi-threaded asset mirror with Chrome's live DOM synthesis and dynamic CSSOM `@keyframes` extraction.
-- **🛡️ 4-Layer SPA Immune Shield**: Neutralizes client-side Next.js, React, and Nuxt hydration crashes (*"Application error: a client-side exception has occurred"*), preserving rendered DOM.
-- **🌓 Universal Dark / Light Mode Switcher**: Automatically discovers and hooks theme toggle buttons and provides an offline `<head>` bootstrapper plus global `Alt+T` shortcut.
-- **⚡ 1-Click Embedded Local Launchers**: Every downloaded ZIP includes `run.bat` (Windows), `run.sh` (macOS/Linux), and a zero-dependency `server.js` (Node HTTP).
-- **🎨 Modern Developer UI**: Designed with a clean, high-performance developer aesthetic inspired by Linear and Vercel.
+### 🚀 Unified Ultra Hybrid Engine
+Merges high-speed multi-threaded network mirroring (Wget Turbo) with headless Chromium dynamic browser rendering. Executes client-side JavaScript, waits for full network idle, and captures runtime-injected DOM nodes.
+
+### 🎮 WebGL & 3D Asset Harvesting
+Autonomous discovery and binary extraction of 3D models and runtime dependencies:
+- **Formats**: `.glb`, `.gltf`, `.bin`, `.wasm`, `.hdr`, `.exr`, `.spline`, `.splinecode`, `.obj`.
+- **Engines**: Three.js, React Three Fiber (R3F), Spline 3D embeds, and WebAssembly decoders.
+- **Smart 3D Fetch Interceptor**: Rewrites dynamic client-side `fetch()` and `XMLHttpRequest` calls to serve binary models offline with accurate MIME types (`model/gltf-binary`, `application/wasm`).
+
+### ✨ React Bits & Front-End Animation Engine
+Captures and restores reactive client-side animation libraries offline without unhydrated React state crashes:
+- **React Bits**: Real-time cursor tracking for Spotlight Cards (`--mouse-x`, `--mouse-y`), 3D Tilt Cards, Glare Cards, and Magnetic Buttons.
+- **Canvas Shaders**: Locks WebGL and 2D canvas buffer dimensions (Aurora, Particles, Waves) to prevent 0×0 collapse.
+- **CSSOM Keyframes**: Reconstructs dynamic CSS animation rules directly from browser memory (`document.styleSheets`).
+
+### 🛡️ 4-Layer SPA Immune Shield
+Neutralizes Next.js, React, and Nuxt hydration crashes (*"Application error: a client-side exception has occurred"*):
+- Intercepts uncaught runtime rejections and React ErrorBoundaries.
+- Prevents white-screen DOM tearing.
+- Replaces dead external tracking/analytics API calls with safe offline mock responses.
+
+### 🌓 Universal Dark / Light Mode Switcher
+Preserves dynamic theme toggles offline:
+- Supports Chakra UI color modes (`chakra-ui-dark`, `chakra-ui-light`), Tailwind dark classes, and `data-theme` attributes.
+- Auto-detects on-page theme toggle buttons and provides an offline `<head>` bootstrapper plus a global `Alt + T` keyboard shortcut.
+
+### 📦 1-Click Standalone Bundling
+Every export includes native offline launchers:
+- `run.bat` for Windows (automatic port negotiation).
+- `run.sh` for macOS / Linux.
+- Zero-dependency built-in Node.js HTTP static server (`server.js`).
 
 ---
 
@@ -19,113 +56,124 @@
 
 ### 1. Prerequisites
 - **Node.js** v18.0 or higher
-- **Google Chrome** or **Microsoft Edge** (automatically detected)
+- **Google Chrome** or **Microsoft Edge** (automatically discovered)
 - *(Optional)* **Wget** (for multi-threaded Turbo Mirroring)
 
-### 2. Installation & Launch
+### 2. Installation
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/Thanzeerwork/Website-Reaper.git
 cd Website-Reaper
 
 # Install dependencies
 npm install
 
-# Start the Website Reaper server
+# Start the application
 npm start
 ```
 
-*On Windows, you can also simply double-click `start.bat`.*
+> **Windows Users**: You can also double-click `start.bat` in the project root.
 
-The dashboard will open automatically at:  
+The dashboard will open automatically in your default browser at:  
 👉 **`http://localhost:5050`**
 
 ---
 
-## 🕹️ How to Use
+## 🕹️ Usage Guide
 
-1. **Enter Website URL**: Paste any target URL (e.g. `tailwindcss.com`, `vite.dev`, `linear.app`).
-2. **Configure Settings (Optional)**: Click **Advanced Engine Settings** to configure crawl depth, asset filters, device viewport, and quotas.
-3. **Click "Reap Website"**: Watch live real-time streaming progress in the developer terminal.
-4. **Preview & Download**:
-   - Click **Download ZIP Archive** to save the standalone package.
-   - Click **Live Preview** to inspect the cloned site in an embedded sandbox.
-   - Extract the ZIP and double-click `run.bat` (Windows) or `./run.sh` (Mac/Linux) to run offline anytime.
+1. **Enter Target URL**: Paste the URL of the website you want to clone (e.g., `https://tailwindcss.com`, `https://spline.design`, or any React Bits demo).
+2. **Configure Engine Settings** *(Optional)*: Click **Advanced Engine Settings** to customize crawl depth, viewport, and quotas.
+3. **Click "Reap Website"**: Monitor live real-time terminal output via Server-Sent Events (SSE).
+4. **Inspect & Run**:
+   - **Live Preview**: Test the cloned website immediately inside the embedded sandbox viewer.
+   - **Download ZIP**: Save the standalone self-contained archive to your machine.
+   - **Run Offline**: Extract the ZIP and double-click `run.bat` (Windows) or execute `./run.sh` (macOS/Linux).
 
 ---
 
 ## ⚙️ Advanced Engine Settings
 
-| Setting | Options | Description |
-| :--- | :--- | :--- |
-| **Cloning Core Engine** | `Unified Hybrid` *(Recommended)*, `Wget Turbo`, `Puppeteer DOM` | Select between hybrid browser+HTTP mirroring or pure headless browser scraping. |
-| **Crawl Depth Scope** | `Entire Website`, `Single Page Only` | Automatically rewrites internal navigation links to local relative paths (`./about.html`). |
-| **Page Cap Limit** | `10`, `20`, `35`, `50`, `100+` | Sets maximum internal subpages to harvest on the target domain. |
-| **Target Viewport** | `Desktop 1080p`, `MacBook 14"`, `iPad`, `iPhone` | Emulates target device resolution for responsive media queries and navigation drawers. |
-| **Asset Harvest Filter** | `All Assets`, `Web Assets Only`, `Lightweight Core` | Filter heavy 4K videos or streaming audio to produce compact bundles. |
-| **Download Quota Limit** | `150 MB`, `500 MB`, `1.5 GB`, `Unlimited` | Caps downloaded storage bandwidth to protect host disk space. |
-| **Dynamic Pre-Warming** | `Enabled` *(Toggle)* | Human scroll velocity simulation waking up `IntersectionObserver` & scroll-triggered animations. |
-| **Settle Latency** | `1.0s`, `2.5s`, `4.0s` | Time allocated for GSAP, Framer Motion, and Webflow entrance transitions. |
-| **User-Agent Profile** | `Chrome Win11`, `Safari macOS`, `Googlebot`, `Mobile Android` | Configurable identity profile to bypass client device gating. |
-| **Custom Auth / Cookies** | Free-form text input | Pass session cookies (`Cookie: session=...`) or bearer tokens for private portals. |
+| Setting | Default | Options | Description |
+| :--- | :--- | :--- | :--- |
+| **Cloning Core** | `Unified Hybrid` | `Unified Hybrid`, `Wget Turbo`, `Puppeteer DOM` | Select between hybrid browser+HTTP mirroring or pure headless browser scraping. |
+| **Crawl Scope** | `Entire Website` | `Entire Website`, `Single Page Only` | Automatically rewrites internal navigation links to local relative paths (`./about.html`). |
+| **Page Cap Limit** | `20 Pages` | `10`, `20`, `35`, `50`, `100+` | Sets maximum internal subpages to harvest on the target domain. |
+| **Target Viewport** | `Desktop 1080p` | `Desktop 1080p`, `MacBook 14"`, `iPad`, `iPhone` | Emulates target device resolution for responsive media queries and mobile drawers. |
+| **Asset Harvest Filter** | `All Assets` | `All Assets`, `Web Assets Only`, `Lightweight Core` | Filter heavy 4K videos or streaming audio to produce compact bundles. |
+| **Download Quota** | `500 MB` | `150 MB`, `500 MB`, `1.5 GB`, `Unlimited` | Caps downloaded storage bandwidth to protect host disk space. |
+| **Dynamic Pre-Warming** | `Enabled` | `Enabled`, `Disabled` | Human scroll velocity simulation waking up `IntersectionObserver` & scroll animations. |
+| **Settle Latency** | `2.5s` | `1.0s`, `2.5s`, `4.0s` | Time allocated for GSAP, Framer Motion, and Webflow entrance transitions. |
+| **User-Agent Profile** | `Chrome Win11` | `Chrome Win11`, `Safari macOS`, `Googlebot`, `Mobile` | Configurable identity profile to bypass client device gating. |
+| **Custom Auth / Cookies** | *None* | `Cookie: ...` / Header string | Pass session cookies or bearer tokens for authenticated portals. |
 
 ---
 
-## 🏗️ Architecture & Pipeline
+## 🏗️ Architecture Pipeline
 
-```
+```text
 Target URL ──► Canonical Resolver (Follows 301/302 Redirects)
                      │
        ┌─────────────┴─────────────┐
        ▼                           ▼
 [Wget Turbo Mirror]       [Headless Chromium]
- • Multi-threaded GET      • JS Hydration
- • Relative link rewrite   • Scroll velocity pre-warm
- • Font & SVG harvesting   • Dynamic CSSOM keyframes
+ • Multi-threaded GET      • JS Hydration & Execution
+ • Recursive asset scan    • WebGL / 3D Model Interceptor
+ • Font & SVG harvesting   • Dynamic CSSOM @keyframes extraction
+       │                   • React Bits & Shader Pre-Warming
        │                           │
        └─────────────┬─────────────┘
                      ▼
-           [4-Layer Immune Shield]
-            • Neutralizes Next.js ErrorBoundary
-            • Patches runtime DOM replacement
-            • Injects Universal Theme Switcher
+           [Asset Normalizer]
+            • Re-maps URLs to local relative paths (./assets/...)
+            • Organizes 3D models into ./assets/3d/ (.glb, .wasm, .spline)
+                     ▼
+           [4-Layer SPA Immune Shield]
+            • Neutralizes Next.js ErrorBoundaries & client crashes
+            • Universal Theme Switcher (Chakra UI, Tailwind, data-theme)
+            • Offline Binary 3D Fetch Proxy
                      ▼
            [Standalone Packager]
             • Generates run.bat (Windows)
             • Generates run.sh (macOS/Linux)
-            • Generates zero-dependency server.js
-            • Compresses standalone .ZIP bundle
+            • Bundles zero-dependency server.js
+            • Compresses standalone .ZIP package
 ```
 
 ---
 
-## 📦 What's Inside Cloned Packages?
+## 📦 What's Inside a Cloned Package?
 
-Every downloaded ZIP archive is **100% self-contained**:
+Every downloaded ZIP archive is **100% self-contained** and runs without internet access:
 
-```
+```text
 cloned-website/
 ├── index.html              # Cleaned HTML with localized assets
 ├── about.html              # Fully linked subpages
-├── assets/                 # Re-mapped stylesheets, fonts, scripts, and images
+├── assets/
+│   ├── css/                # Extracted stylesheets
+│   ├── js/                 # Localized JavaScript bundles
+│   ├── images/             # Responsive images, WebP, SVGs
+│   ├── fonts/              # WOFF2, WOFF, TTF web fonts
+│   └── 3d/                 # GLB, GLTF, WASM decoders, Spline scenes
 ├── reaper-engine.js        # Universal animation runtime & SPA immune shield
 ├── reaper-keyframes.css    # Synthesized dynamic CSSOM animations
-├── run.bat                 # 1-Click Windows launcher (Auto port finder)
+├── run.bat                 # 1-Click Windows launcher (Auto port negotiation)
 ├── run.sh                  # 1-Click macOS/Linux launcher
-└── server.js               # Zero-dependency local Node.js server
+└── server.js               # Zero-dependency local Node.js HTTP server
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Runtime**: Node.js & Express
-- **Automation Engine**: Puppeteer-Core with dynamic browser executable auto-discovery
-- **Network Mirroring**: Wget CLI with fallback to custom asynchronous crawler
+- **Runtime Environment**: Node.js & Express
+- **Browser Automation**: Puppeteer-Core with dynamic browser executable auto-detection
+- **Network Mirroring**: Wget CLI with asynchronous fallback crawler
+- **3D & Asset Processing**: WebGL Network Interceptor, ArrayBuffer binary stream handler
 - **DOM & AST Processing**: Cheerio & PostCSS
-- **Streaming Telemetry**: Server-Sent Events (SSE)
-- **Frontend**: Tailwind CSS, Inter, JetBrains Mono
+- **Real-Time Telemetry**: Server-Sent Events (SSE)
+- **Developer UI**: Tailwind CSS, Inter, JetBrains Mono
 
 ---
 

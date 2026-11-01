@@ -93,6 +93,53 @@ class AnimationBooster {
     transform: none !important;
 }
 
+/* React Bits: Spotlight Card & Interactive Hover Gradient */
+[data-spotlight], .spotlight-card, .spotlight, [data-component="spotlight-card"] {
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    --x: 50%;
+    --y: 50%;
+    position: relative;
+    overflow: hidden;
+}
+.spotlight-card::before, [data-spotlight]::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.14), transparent 65%);
+    pointer-events: none;
+    z-index: 2;
+    opacity: var(--spotlight-opacity, 1);
+    transition: opacity 0.3s ease;
+}
+
+/* React Bits: 3D Glare & Tilted Card */
+[data-tilt], .tilted-card, .glare-card, [data-glare] {
+    transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1);
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* Three.js, React Three Fiber & WebGL Canvas */
+canvas[data-reaper-canvas], canvas {
+    max-width: 100% !important;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Chakra UI: Accordion, Menus & Transitions */
+.chakra-accordion__panel[hidden] {
+    display: none !important;
+}
+.chakra-accordion__panel:not([hidden]) {
+    display: block !important;
+    animation: chakraFadeIn 0.2s ease-out;
+}
+@keyframes chakraFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Ensure smooth native scrolling */
 html {
     scroll-behavior: smooth;
@@ -213,15 +260,56 @@ html, body {
         }
     } catch(err) {}
 
-    // Mock broken analytics & API fetches to prevent uncaught network rejections
+    // ========================================================
+    // LAYER 1B: 3D MODEL, SHADER & RUNTIME NETWORK PROXY
+    // ========================================================
     const originalFetch = window.fetch;
+    const is3dOrBinary = function(url) {
+        if (!url || typeof url !== 'string') return false;
+        return /\.(glb|gltf|bin|wasm|hdr|exr|spline|splinecode|obj|mtl|fbx|json)$/i.test(url.split('?')[0]);
+    };
+
     if (originalFetch) {
-        window.fetch = function(...args) {
-            return originalFetch.apply(this, args).catch(() => {
-                return new Response(JSON.stringify({ status: 'ok', mocked: true }), {
-                    headers: { 'Content-Type': 'application/json' }
-                });
+        window.fetch = function(input, init) {
+            let url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+            
+            // If fetching 3D model or wasm, try resolving locally to ./assets/3d/ or ./assets/
+            if (is3dOrBinary(url)) {
+                const filename = url.split('/').pop().split('?')[0];
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                    // Try fetching from local assets/3d first
+                    return originalFetch.call(this, './assets/3d/' + filename, init)
+                        .catch(() => originalFetch.call(this, './assets/' + filename, init))
+                        .catch(() => originalFetch.call(this, input, init));
+                }
+            }
+
+            return originalFetch.apply(this, arguments).catch(function(err) {
+                // For non-3D telemetry/analytics, return safe 200 OK JSON
+                if (!is3dOrBinary(url)) {
+                    return new Response(JSON.stringify({ status: 'ok', mocked: true }), {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                throw err;
             });
+        };
+    }
+
+    // WebGL Context Preservation
+    if (window.HTMLCanvasElement) {
+        const origGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function(type, attribs) {
+            if (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl') {
+                attribs = attribs || {};
+                attribs.preserveDrawingBuffer = true;
+                attribs.powerPreference = 'high-performance';
+            }
+            const ctx = origGetContext.call(this, type, attribs);
+            if (ctx && (type.includes('webgl'))) {
+                this.addEventListener('webglcontextlost', function(e) { e.preventDefault(); }, false);
+            }
+            return ctx;
         };
     }
 
@@ -307,18 +395,131 @@ html, body {
             });
         }, 2200);
 
-        // 6. Interactive Card Tilt Effects ([data-tilt])
-        document.querySelectorAll('[data-tilt]').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                card.style.transform = 'perspective(1000px) rotateX(' + (-y / 20) + 'deg) rotateY(' + (x / 20) + 'deg)';
+        // 6. React Bits Autonomous Interactive Engine (Spotlight, Glare, 3D Tilt, Magnet)
+        function bindReactBitsInteractions() {
+            // A. Spotlight Cards
+            const spotlightSelectors = '[data-spotlight], .spotlight-card, .spotlight, [data-component="spotlight-card"]';
+            document.querySelectorAll(spotlightSelectors).forEach(card => {
+                if (card.hasAttribute('data-reaper-spotlight-bound')) return;
+                card.setAttribute('data-reaper-spotlight-bound', 'true');
+
+                const updateSpotlight = (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', x + 'px');
+                    card.style.setProperty('--mouse-y', y + 'px');
+                    card.style.setProperty('--x', x + 'px');
+                    card.style.setProperty('--y', y + 'px');
+                    card.style.setProperty('--spotlight-x', (x / rect.width * 100).toFixed(1) + '%');
+                    card.style.setProperty('--spotlight-y', (y / rect.height * 100).toFixed(1) + '%');
+                    card.style.setProperty('--spotlight-opacity', '1');
+                };
+
+                card.addEventListener('mousemove', updateSpotlight);
+                card.addEventListener('pointermove', updateSpotlight);
+                card.addEventListener('mouseleave', () => {
+                    card.style.setProperty('--spotlight-opacity', '0');
+                });
             });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+
+            // B. 3D Tilt & Glare Cards
+            const tiltSelectors = '[data-tilt], .tilted-card, .glare-card, [data-glare]';
+            document.querySelectorAll(tiltSelectors).forEach(card => {
+                if (card.hasAttribute('data-reaper-tilt-bound')) return;
+                card.setAttribute('data-reaper-tilt-bound', 'true');
+
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    const rotateX = (-y / (rect.height / 2) * 12).toFixed(2);
+                    const rotateY = (x / (rect.width / 2) * 12).toFixed(2);
+                    card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale3d(1.02, 1.02, 1.02)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                });
             });
-        });
+
+            // C. Magnet Components
+            document.querySelectorAll('[data-magnet], .magnet').forEach(mag => {
+                if (mag.hasAttribute('data-reaper-magnet-bound')) return;
+                mag.setAttribute('data-reaper-magnet-bound', 'true');
+
+                mag.addEventListener('mousemove', e => {
+                    const rect = mag.getBoundingClientRect();
+                    const x = (e.clientX - rect.left - rect.width / 2) * 0.35;
+                    const y = (e.clientY - rect.top - rect.height / 2) * 0.35;
+                    mag.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+                });
+                mag.addEventListener('mouseleave', () => {
+                    mag.style.transform = 'translate(0px, 0px)';
+                });
+            });
+
+            // D. Three.js & Canvas 3D Shaders Preservation
+            document.querySelectorAll('canvas').forEach(cv => {
+                cv.setAttribute('data-reaper-canvas', 'true');
+            });
+        }
+        bindReactBitsInteractions();
+
+        // 7. Chakra UI Interactive Controller (Accordions, Drawers, Menus, Popovers)
+        function bindChakraInteractions() {
+            // Chakra UI Accordion Buttons
+            document.querySelectorAll('.chakra-accordion__button, [data-part="trigger"]').forEach(btn => {
+                if (btn.hasAttribute('data-reaper-chakra-bound')) return;
+                btn.setAttribute('data-reaper-chakra-bound', 'true');
+                btn.style.cursor = 'pointer';
+
+                btn.addEventListener('click', function(e) {
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+
+                    const controlsId = btn.getAttribute('aria-controls');
+                    let panel = controlsId ? document.getElementById(controlsId) : null;
+                    if (!panel) {
+                        const item = btn.closest('.chakra-accordion__item') || btn.parentElement;
+                        if (item) panel = item.querySelector('.chakra-accordion__panel, [role="region"]');
+                    }
+
+                    if (panel) {
+                        if (isExpanded) {
+                            panel.setAttribute('hidden', '');
+                            panel.style.display = 'none';
+                        } else {
+                            panel.removeAttribute('hidden');
+                            panel.style.display = 'block';
+                        }
+                    }
+                });
+            });
+
+            // Chakra UI Menus
+            document.querySelectorAll('.chakra-menu__menu-button').forEach(btn => {
+                if (btn.hasAttribute('data-reaper-chakra-menu-bound')) return;
+                btn.setAttribute('data-reaper-chakra-menu-bound', 'true');
+                btn.style.cursor = 'pointer';
+
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const menuContainer = btn.closest('.chakra-menu');
+                    const menuList = menuContainer ? menuContainer.querySelector('.chakra-menu__menu-list') : null;
+                    if (menuList) {
+                        const isHidden = menuList.getAttribute('hidden') !== null || menuList.style.display === 'none';
+                        if (isHidden) {
+                            menuList.removeAttribute('hidden');
+                            menuList.style.display = 'block';
+                        } else {
+                            menuList.setAttribute('hidden', '');
+                            menuList.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+        bindChakraInteractions();
 
         // 7. Auto-bind Mobile Hamburger Menus & Navigation Dropdowns
         document.querySelectorAll('.ToggleMenu_menuWrap__TTX8G, .hamburger, [data-mobile-menu-toggle]').forEach(btn => {
@@ -378,17 +579,21 @@ html, body {
             const isDark = targetTheme === 'dark';
             console.log('[Website Reaper] Applying theme:', targetTheme);
 
-            // 1. Classes on <html> and <body> (Tailwind & CSS frameworks)
+            // 1. Classes on <html> and <body> (Tailwind, Chakra UI & CSS frameworks)
             root.classList.toggle('dark', isDark);
             root.classList.toggle('theme-dark', isDark);
             root.classList.toggle('light', !isDark);
             root.classList.toggle('theme-light', !isDark);
+            root.classList.toggle('chakra-ui-dark', isDark);
+            root.classList.toggle('chakra-ui-light', !isDark);
 
             if (body) {
                 body.classList.toggle('dark', isDark);
                 body.classList.toggle('theme-dark', isDark);
                 body.classList.toggle('light', !isDark);
                 body.classList.toggle('theme-light', !isDark);
+                body.classList.toggle('chakra-ui-dark', isDark);
+                body.classList.toggle('chakra-ui-light', !isDark);
             }
 
             // 2. Data Attributes (Astro, DaisyUI, Bootstrap 5.3, Next themes)
@@ -658,6 +863,9 @@ html, body {
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-web-security',
+                    '--enable-webgl',
+                    '--enable-accelerated-2d-canvas',
+                    '--ignore-gpu-blocklist',
                     '--allow-file-access-from-files'
                 ],
                 defaultViewport: { width: 1440, height: 900 }
@@ -703,6 +911,29 @@ html, body {
                                 if (totalHeight >= scrollHeight || totalHeight > 10000) {
                                     clearInterval(timer);
                                     window.scrollTo(0, 0);
+
+                                    // Wake up React Bits card spotlight, glare, tilt, and 3D canvas
+                                    try {
+                                        const interactive = document.querySelectorAll('[data-spotlight], .spotlight, [data-tilt], .card, canvas, .chakra-accordion__button');
+                                        interactive.forEach(el => {
+                                            const r = el.getBoundingClientRect();
+                                            const cx = r.left + r.width / 2;
+                                            const cy = r.top + r.height / 2;
+                                            el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, clientX: cx, clientY: cy }));
+                                            el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: cx, clientY: cy }));
+                                            el.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: cx, clientY: cy }));
+                                        });
+
+                                        // Lock canvas buffer dimensions
+                                        document.querySelectorAll('canvas').forEach(cv => {
+                                            const rect = cv.getBoundingClientRect();
+                                            if (!cv.getAttribute('width') && rect.width > 0) cv.setAttribute('width', Math.round(rect.width));
+                                            if (!cv.getAttribute('height') && rect.height > 0) cv.setAttribute('height', Math.round(rect.height));
+                                            cv.setAttribute('data-reaper-canvas', 'true');
+                                        });
+                                        window.dispatchEvent(new Event('resize'));
+                                    } catch(e) {}
+
                                     setTimeout(resolve, 200);
                                 }
                             }, 50);

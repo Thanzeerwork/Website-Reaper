@@ -18,6 +18,7 @@ class AssetManager {
             images: path.join(this.assetsDir, 'images'),
             fonts: path.join(this.assetsDir, 'fonts'),
             media: path.join(this.assetsDir, 'media'),
+            models3d: path.join(this.assetsDir, '3d'),
             misc: path.join(this.assetsDir, 'misc')
         };
 
@@ -189,6 +190,16 @@ class AssetManager {
         const urlPath = urlStr.split('?')[0].split('#')[0].toLowerCase();
         const ct = (contentType || '').toLowerCase();
 
+        // 3D Models, Shaders, WebAssembly, and Environment Maps
+        if (
+            ct.includes('model/') ||
+            ct.includes('gltf') ||
+            ct.includes('wasm') ||
+            /\.(glb|gltf|bin|wasm|hdr|exr|spline|splinecode|obj|mtl|fbx|dae|draco)$/i.test(urlPath)
+        ) {
+            return 'models3d';
+        }
+
         if (ct.includes('text/css') || urlPath.endsWith('.css')) return 'css';
         if (ct.includes('javascript') || ct.includes('ecmascript') || urlPath.endsWith('.js') || urlPath.endsWith('.mjs')) return 'js';
         if (ct.includes('font') || /\.(woff2|woff|ttf|otf|eot)$/i.test(urlPath)) return 'fonts';
@@ -223,6 +234,7 @@ class AssetManager {
                         fonts: '.woff2',
                         images: '.png',
                         media: '.mp4',
+                        models3d: '.glb',
                         misc: '.bin'
                     };
                     ext = extMap[category] || '.bin';
@@ -238,6 +250,16 @@ class AssetManager {
             const hash = crypto.createHash('md5').update(urlStr).digest('hex').substring(0, 10);
             return `file_${hash}.bin`;
         }
+    }
+
+    saveManifest(filePath) {
+        try {
+            const manifest = {};
+            for (const [url, localPath] of this.downloaded.entries()) {
+                manifest[url] = localPath;
+            }
+            fs.writeFileSync(filePath, JSON.stringify(manifest, null, 2), 'utf8');
+        } catch {}
     }
 }
 

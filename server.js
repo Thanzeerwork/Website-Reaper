@@ -341,26 +341,39 @@ app.use('/preview/:id', (req, res, next) => {
     const nameWithoutExt = path.basename(baseName, path.extname(baseName));
     const ext = path.extname(baseName).toLowerCase();
 
-    const assetSubdirs = ['images', 'media', 'fonts', 'css', 'js', 'misc'];
+    const assetSubdirs = ['3d', 'images', 'media', 'fonts', 'css', 'js', 'misc'];
     for (const sub of assetSubdirs) {
         const subDir = path.join(cloneDir, 'assets', sub);
         if (fs.existsSync(subDir)) {
             const directMatch = path.join(subDir, baseName);
             if (fs.existsSync(directMatch) && fs.statSync(directMatch).isFile()) {
+                if (directMatch.endsWith('.glb')) res.setHeader('Content-Type', 'model/gltf-binary');
+                else if (directMatch.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
                 return res.sendFile(directMatch);
             }
             try {
                 const files = fs.readdirSync(subDir);
                 const matched = files.find(f => (f.startsWith(nameWithoutExt) || f.includes(nameWithoutExt)) && path.extname(f).toLowerCase() === ext);
                 if (matched) {
-                    return res.sendFile(path.join(subDir, matched));
+                    const matchPath = path.join(subDir, matched);
+                    if (matchPath.endsWith('.glb')) res.setHeader('Content-Type', 'model/gltf-binary');
+                    else if (matchPath.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
+                    return res.sendFile(matchPath);
                 }
             } catch {}
         }
     }
 
     express.static(cloneDir, {
-        extensions: ['html', 'htm']
+        extensions: ['html', 'htm'],
+        setHeaders: (res, p) => {
+            if (p.endsWith('.glb')) res.setHeader('Content-Type', 'model/gltf-binary');
+            else if (p.endsWith('.gltf')) res.setHeader('Content-Type', 'model/gltf+json');
+            else if (p.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
+            else if (p.endsWith('.hdr')) res.setHeader('Content-Type', 'image/vnd.radiance');
+            else if (p.endsWith('.bin')) res.setHeader('Content-Type', 'application/octet-stream');
+            else if (p.endsWith('.spline') || p.endsWith('.splinecode')) res.setHeader('Content-Type', 'application/octet-stream');
+        }
     })(req, res, next);
 });
 

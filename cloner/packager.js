@@ -94,7 +94,16 @@ const MIME_TYPES = {
     '.otf': 'font/otf',
     '.mp4': 'video/mp4',
     '.webm': 'video/webm',
-    '.mp3': 'audio/mpeg'
+    '.mp3': 'audio/mpeg',
+    '.glb': 'model/gltf-binary',
+    '.gltf': 'model/gltf+json',
+    '.bin': 'application/octet-stream',
+    '.wasm': 'application/wasm',
+    '.hdr': 'image/vnd.radiance',
+    '.spline': 'application/octet-stream',
+    '.splinecode': 'application/octet-stream',
+    '.obj': 'text/plain',
+    '.mtl': 'text/plain'
 };
 
 const server = http.createServer((req, res) => {

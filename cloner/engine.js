@@ -119,7 +119,9 @@ class ClonerEngine {
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-web-security',
-                    '--disable-gpu',
+                    '--enable-webgl',
+                    '--enable-accelerated-2d-canvas',
+                    '--ignore-gpu-blocklist',
                     '--disable-features=IsolateOrigins,site-per-process',
                     '--allow-running-insecure-content',
                     '--disable-blink-features=AutomationControlled',
@@ -145,7 +147,7 @@ class ClonerEngine {
                 }
             });
 
-            // Dynamic browser response caching
+            // Dynamic browser response caching (Styles, Scripts, Fonts, Images, 3D Models, and WebGL Shaders)
             page.on('response', async (response) => {
                 try {
                     const status = response.status();
@@ -157,7 +159,11 @@ class ClonerEngine {
                             ct.includes('javascript') ||
                             ct.includes('font') ||
                             ct.includes('image') ||
-                            /\.(woff2|woff|ttf|otf|eot|css|js|png|jpe?g|svg|webp|avif|ico)$/i.test(url)
+                            ct.includes('model/') ||
+                            ct.includes('gltf') ||
+                            ct.includes('wasm') ||
+                            (ct.includes('application/octet-stream') && /\.(glb|gltf|bin|wasm|hdr|exr|splinecode|spline)/i.test(url)) ||
+                            /\.(woff2?|ttf|otf|eot|css|m?js|png|jpe?g|svg|webp|avif|ico|glb|gltf|bin|wasm|hdr|exr|spline|splinecode|obj|mtl|fbx|json)$/i.test(url)
                         ) {
                             const buffer = await response.buffer();
                             assetManager.addInterceptedResponse(url, buffer, ct);

@@ -164,7 +164,7 @@ class HybridCloner {
         if (this.options.prewarm && browserExe) {
             emit('rendering', `Phase 2/4: Synthesizing live DOM, wake-up scroll triggers & dynamic CSSOM via Headless Chrome...`);
             try {
-                await this._synthesizeLiveBrowserData(outputDir, browserExe, emit);
+                await this._synthesizeLiveBrowserData(outputDir, browserExe, emit, canonicalUrl);
             } catch (bErr) {
                 console.warn('[HybridCloner] Browser synthesis notice:', bErr.message);
             }
@@ -228,7 +228,7 @@ class HybridCloner {
      * Live browser synthesis: Auto-scrolls pages in headless Chrome, executes JS intersection
      * observers, unhides lazy content, and captures dynamic CSSOM rules.
      */
-    async _synthesizeLiveBrowserData(outputDir, executablePath, emit) {
+    async _synthesizeLiveBrowserData(outputDir, executablePath, emit, canonicalUrl = null) {
         let puppeteer;
         try {
             puppeteer = require('puppeteer-core');
@@ -245,6 +245,10 @@ class HybridCloner {
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-web-security',
+                    '--enable-webgl',
+                    '--enable-accelerated-2d-canvas',
+                    '--ignore-gpu-blocklist',
+                    '--use-gl=angle',
                     '--allow-file-access-from-files',
                     '--disable-features=IsolateOrigins,site-per-process'
                 ],
@@ -253,6 +257,49 @@ class HybridCloner {
                     height: this.options.viewportHeight
                 }
             });
+
+            // If canonicalUrl is present, do a live 3D & WebGL asset discovery pass on the real URL
+            if (canonicalUrl) {
+                emit('rendering', `Discovering 3D models, WebGL shaders & React Bits assets from live URL...`);
+                const livePage = await browser.newPage();
+                try {
+                    if (this.options.userAgent) {
+                        await livePage.setUserAgent(this.options.userAgent);
+                    }
+
+                    // Intercept 3D models and binary files
+                    livePage.on('response', async (response) => {
+                        try {
+                            const status = response.status();
+                            if (status >= 200 && status < 300) {
+                                const ct = (response.headers()['content-type'] || '').toLowerCase();
+                                const url = response.url();
+                                if (
+                                    ct.includes('model/') ||
+                                    ct.includes('gltf') ||
+                                    ct.includes('wasm') ||
+                                    (ct.includes('application/octet-stream') && /\.(glb|gltf|bin|wasm|hdr|exr|splinecode|spline)/i.test(url)) ||
+                                    /\.(glb|gltf|bin|wasm|hdr|exr|spline|splinecode|obj|mtl|fbx|json)$/i.test(url)
+                                ) {
+                                    const buffer = await response.buffer();
+                                    const filename = path.basename(url.split('?')[0]);
+                                    const dir3d = path.join(outputDir, 'assets', '3d');
+                                    if (!fs.existsSync(dir3d)) fs.mkdirSync(dir3d, { recursive: true });
+                                    fs.writeFileSync(path.join(dir3d, filename), buffer);
+                                    emit('asset', `Captured 3D/Binary Asset: ${filename} (${(buffer.length / 1024).toFixed(1)} KB)`);
+                                }
+                            }
+                        } catch {}
+                    });
+
+                    await livePage.goto(canonicalUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+                    await new Promise(r => setTimeout(r, Math.min(this.options.settleDelay || 2500, 3000)));
+                } catch (liveErr) {
+                    console.warn('[HybridCloner] Live 3D pass notice:', liveErr.message);
+                } finally {
+                    try { await livePage.close(); } catch {}
+                }
+            }
 
             const htmlFiles = [];
             const collectHtml = (dir) => {
@@ -283,7 +330,7 @@ class HybridCloner {
                     const fileUrl = 'file:///' + filePath.replace(/\\/g, '/');
                     await page.goto(fileUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
-                    // Progressive smooth scrolling to wake up all animations and lazy images
+                    // Progressive smooth scrolling and React Bits/Chakra UI wake-up
                     await page.evaluate(async (settleMs) => {
                         await new Promise((resolve) => {
                             let current = 0;
@@ -297,6 +344,29 @@ class HybridCloner {
                                 if (current >= maxScroll) {
                                     clearInterval(timer);
                                     window.scrollTo(0, 0);
+
+                                    // Wake up React Bits card spotlight, glare, tilt, and 3D canvas
+                                    try {
+                                        const interactive = document.querySelectorAll('[data-spotlight], .spotlight, [data-tilt], .card, canvas, .chakra-accordion__button');
+                                        interactive.forEach(el => {
+                                            const r = el.getBoundingClientRect();
+                                            const cx = r.left + r.width / 2;
+                                            const cy = r.top + r.height / 2;
+                                            el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, clientX: cx, clientY: cy }));
+                                            el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: cx, clientY: cy }));
+                                            el.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: cx, clientY: cy }));
+                                        });
+
+                                        // Lock canvas buffer dimensions
+                                        document.querySelectorAll('canvas').forEach(cv => {
+                                            const rect = cv.getBoundingClientRect();
+                                            if (!cv.getAttribute('width') && rect.width > 0) cv.setAttribute('width', Math.round(rect.width));
+                                            if (!cv.getAttribute('height') && rect.height > 0) cv.setAttribute('height', Math.round(rect.height));
+                                            cv.setAttribute('data-reaper-canvas', 'true');
+                                        });
+                                        window.dispatchEvent(new Event('resize'));
+                                    } catch(e) {}
+
                                     setTimeout(resolve, Math.max(settleMs / 4, 250));
                                 }
                             }, 40);
