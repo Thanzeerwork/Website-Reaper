@@ -129,6 +129,3 @@ cloned-website/
 
 ---
 
-## 📄 License
-
-MIT License — Feel free to use and modify for personal or commercial projects.
