@@ -30,6 +30,8 @@ class HybridCloner {
             customHeaders: options.customHeaders || '',
             timeout: options.timeout || 300000,
             userAgent: options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+            selectedPages: options.selectedPages || null,
+            pageSectionFilters: options.pageSectionFilters || null,
             ...options
         };
     }
@@ -125,7 +127,9 @@ class HybridCloner {
                 deepScroll: this.options.deepScroll,
                 deepCrawl: this.options.deepCrawl,
                 maxPages: this.options.maxPages,
-                maxDepth: this.options.maxDepth
+                maxDepth: this.options.maxDepth,
+                selectedPages: this.options.selectedPages,
+                pageSectionFilters: this.options.pageSectionFilters
             });
 
             const intermediateZip = path.join(path.dirname(zipPath), `temp_${Date.now()}.zip`);
@@ -186,6 +190,9 @@ class HybridCloner {
 
         // Ensure video and canvas tags have required autoplay/loop attributes
         this._enhanceMediaElements(outputDir);
+
+        // Apply selective page and section pruning if custom filters are set
+        this._applyPageAndSectionFilters(outputDir, emit);
 
         // =========================================================================
         // STAGE 4: 1-CLICK LAUNCHERS & FINAL PACKAGE
@@ -516,6 +523,136 @@ class HybridCloner {
 
                     fs.writeFileSync(fullPath, $.html(), 'utf8');
                 } catch {}
+            }
+        }
+    }
+
+    /**
+     * Apply selective page and inner section pruning based on user selections
+     */
+    _applyPageAndSectionFilters(outputDir, emit) {
+        const { selectedPages, pageSectionFilters } = this.options;
+        if (!selectedPages && !pageSectionFilters) return;
+
+        // 1. Prune unselected pages if selectedPages is provided
+        if (Array.isArray(selectedPages) && selectedPages.length > 0) {
+            const allowedFileNames = new Set(['index.html']);
+            selectedPages.forEach(u => {
+                try {
+                    const parsed = new URL(u);
+                    let p = parsed.pathname.replace(/^\/+|\/+$/g, '');
+                    if (!p || p === 'index' || p === 'index.html') {
+                        allowedFileNames.add('index.html');
+                    } else {
+                        if (!/\.html?$/i.test(p)) p += '.html';
+                        allowedFileNames.add(path.basename(p));
+                        allowedFileNames.add(p);
+                    }
+                } catch {}
+            });
+
+            const scanDirForHtml = (dir) => {
+                if (!fs.existsSync(dir)) return;
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory() && entry.name !== 'assets') {
+                        scanDirForHtml(fullPath);
+                    } else if (entry.isFile() && /\.html?$/i.test(entry.name)) {
+                        const rel = path.relative(outputDir, fullPath).replace(/\\/g, '/');
+                        if (!allowedFileNames.has(entry.name) && !allowedFileNames.has(rel) && entry.name !== 'index.html') {
+                            try {
+                                fs.unlinkSync(fullPath);
+                                emit('processing', `Pruned unselected page: ${rel}`);
+                            } catch {}
+                        }
+                    }
+                }
+            };
+            scanDirForHtml(outputDir);
+        }
+
+        // 2. Prune unselected sections within HTML files
+        if (pageSectionFilters && typeof pageSectionFilters === 'object') {
+            const htmlFiles = [];
+            const collectHtml = (dir) => {
+                if (!fs.existsSync(dir)) return;
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const full = path.join(dir, entry.name);
+                    if (entry.isDirectory() && entry.name !== 'assets') {
+                        collectHtml(full);
+                    } else if (entry.isFile() && /\.html?$/i.test(entry.name)) {
+                        htmlFiles.push(full);
+                    }
+                }
+            };
+            collectHtml(outputDir);
+
+            for (const file of htmlFiles) {
+                const relPath = path.relative(outputDir, file).replace(/\\/g, '/');
+                const baseName = path.basename(file);
+                let filter = null;
+                for (const [key, val] of Object.entries(pageSectionFilters)) {
+                    if (
+                        key === relPath ||
+                        key === baseName ||
+                        (relPath === 'index.html' && (key === '/' || key === '')) ||
+                        key.endsWith('/' + relPath) ||
+                        (key.includes('/') && new URL(key, 'http://dummy.local').pathname.replace(/^\/+/, '') === relPath)
+                    ) {
+                        filter = val;
+                        break;
+                    }
+                }
+
+                if (!filter) filter = pageSectionFilters['*'];
+                if (!filter) continue;
+
+                try {
+                    const rawHtml = fs.readFileSync(file, 'utf8');
+                    const $ = cheerio.load(rawHtml, { decodeEntities: false });
+                    let removedCount = 0;
+
+                    // Remove by excludedSelectors
+                    if (filter.excludedSelectors && Array.isArray(filter.excludedSelectors)) {
+                        for (const sel of filter.excludedSelectors) {
+                            if (!sel) continue;
+                            try {
+                                const matched = $(sel);
+                                if (matched.length > 0) {
+                                    matched.remove();
+                                    removedCount++;
+                                }
+                            } catch {}
+                        }
+                    }
+
+                    // Remove by excludedHeadings
+                    if (filter.excludedHeadings && Array.isArray(filter.excludedHeadings)) {
+                        for (const heading of filter.excludedHeadings) {
+                            if (!heading) continue;
+                            const hNorm = heading.trim().toLowerCase();
+                            $('h1, h2, h3').each((_, hEl) => {
+                                if ($(hEl).text().trim().toLowerCase() === hNorm) {
+                                    let container = $(hEl);
+                                    while (container.parent().length && container.parent().find('h1, h2').length === 1 && !container.parent().is('body')) {
+                                        container = container.parent();
+                                    }
+                                    container.remove();
+                                    removedCount++;
+                                }
+                            });
+                        }
+                    }
+
+                    if (removedCount > 0) {
+                        fs.writeFileSync(file, $.html(), 'utf8');
+                        emit('processing', `Pruned ${removedCount} unselected section(s) from ${relPath}`);
+                    }
+                } catch (err) {
+                    console.warn(`[Filter] Notice on ${file}:`, err.message);
+                }
             }
         }
     }

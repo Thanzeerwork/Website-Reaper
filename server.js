@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const ClonerEngine = require('./cloner/engine');
 const WgetCrawler = require('./cloner/wgetCrawler');
 const HybridCloner = require('./cloner/hybridCloner');
+const SiteScanner = require('./cloner/siteScanner');
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -53,6 +54,54 @@ app.get('/api/engine-status', (req, res) => {
 });
 
 /**
+ * Scan website architecture: discovers all internal pages & inner sections
+ */
+app.post('/api/scan-site', async (req, res) => {
+    let {
+        url,
+        maxPages = 20,
+        userAgentPreset = 'desktop-win',
+        customUserAgent = ''
+    } = req.body;
+
+    if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL is required' });
+    }
+
+    url = url.trim();
+    if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+    }
+
+    try {
+        new URL(url);
+    } catch {
+        return res.status(400).json({ error: 'Invalid URL provided' });
+    }
+
+    const USER_AGENTS = {
+        'desktop-win': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'mac-safari': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+        'googlebot': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'mobile-android': 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36'
+    };
+    const resolvedUserAgent = (customUserAgent && customUserAgent.trim()) ? customUserAgent.trim() : (USER_AGENTS[userAgentPreset] || USER_AGENTS['desktop-win']);
+
+    const scanner = new SiteScanner({
+        maxPages: Math.min(parseInt(maxPages, 10) || 20, 50),
+        userAgent: resolvedUserAgent
+    });
+
+    try {
+        const scanResult = await scanner.scanWebsite(url);
+        res.json(scanResult);
+    } catch (err) {
+        console.error('[Scan Site Error]', err);
+        res.status(500).json({ error: err.message || 'Failed to scan website structure' });
+    }
+});
+
+/**
  * Start a new cloning job
  */
 app.post('/api/clone', async (req, res) => {
@@ -70,7 +119,9 @@ app.post('/api/clone', async (req, res) => {
         userAgentPreset = 'desktop-win',
         customUserAgent = '',
         prewarm = true,
-        customHeaders = ''
+        customHeaders = '',
+        selectedPages = null,
+        pageSectionFilters = null
     } = req.body;
 
     if (!url || typeof url !== 'string') {
@@ -154,7 +205,9 @@ app.post('/api/clone', async (req, res) => {
                     prewarm: Boolean(prewarm),
                     settleDelay: parseInt(delay, 10) || 2500,
                     userAgent: resolvedUserAgent,
-                    customHeaders
+                    customHeaders,
+                    selectedPages,
+                    pageSectionFilters
                 });
                 result = await hybrid.cloneWebsite(url, outputDir, zipPath, (progressEvent) => {
                     broadcastEvent(progressEvent);
@@ -179,7 +232,9 @@ app.post('/api/clone', async (req, res) => {
                     maxPages: Math.min(parseInt(maxPages, 10) || 20, 100),
                     maxDepth: parseInt(maxDepth, 10) || 3,
                     postLoadDelay: parseInt(delay, 10) || 2500,
-                    userAgent: resolvedUserAgent
+                    userAgent: resolvedUserAgent,
+                    selectedPages,
+                    pageSectionFilters
                 });
 
                 result = await engine.cloneWebsite(url, outputDir, zipPath, (progressEvent) => {

@@ -21,6 +21,13 @@
 ### 🚀 Unified Ultra Hybrid Engine
 Merges high-speed multi-threaded network mirroring (Wget Turbo) with headless Chromium dynamic browser rendering. Executes client-side JavaScript, waits for full network idle, and captures runtime-injected DOM nodes.
 
+### 🗺️ Interactive Site Architecture & Inner Section Selector
+Inspects the entire target website before downloading, revealing all discovered pages and their granular inner sections (`<header>`, `#hero`, `#features`, `#pricing`, `<footer>`):
+- **Granular Selection**: Check or uncheck individual subpages or individual inner UI components.
+- **Search & Filter**: Real-time keyword filtering to locate specific modules (e.g., `pricing`, `faq`, `hero`).
+- **DOM Pruning Engine**: Automatically excises unselected sections from the rendered HTML while keeping global styles, CSS animations, and layout flow 100% intact.
+- **Quick Modes**: 1-click presets for *Select All*, *Deselect All*, and *Landing Page Only*.
+
 ### 🎮 WebGL & 3D Asset Harvesting
 Autonomous discovery and binary extraction of 3D models and runtime dependencies:
 - **Formats**: `.glb`, `.gltf`, `.bin`, `.wasm`, `.hdr`, `.exr`, `.spline`, `.splinecode`, `.obj`.

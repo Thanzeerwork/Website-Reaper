@@ -153,6 +153,16 @@
                         <button type="button" class="sample-chip px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-standard" data-url="https://playwright.dev">playwright.dev</button>
                     </div>
 
+                    <!-- Interactive Mode Toggle Pill -->
+                    <div class="flex items-center justify-between pt-2 px-1 text-xs border-t border-white/[0.06]">
+                        <label class="flex items-center gap-2 cursor-pointer select-none text-zinc-300 hover:text-white">
+                            <input type="checkbox" id="selectiveModeToggle" class="rounded bg-black/40 border-white/20 text-blue-500 focus:ring-0 focus:ring-offset-0" checked>
+                            <span class="font-medium">Inspect & Select Pages and Inner Sections</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">Interactive</span>
+                        </label>
+                        <span class="text-[11px] text-zinc-500 hidden sm:inline">Shows website pages & inner sections to select</span>
+                    </div>
+
                     <!-- Accordion Toggle Button -->
                     <div class="pt-2 border-t border-white/[0.06]">
                         <button type="button" id="optionsToggle" class="w-full flex items-center justify-between text-xs text-zinc-400 hover:text-zinc-200 py-1 transition-standard">
@@ -289,6 +299,94 @@
                     </div>
                 </form>
             </div>
+
+            <!-- 2.5 INTERACTIVE SITE ARCHITECTURE & SECTION SELECTOR -->
+            <section id="siteSelectorSection" class="surface-card p-4 sm:p-5 space-y-4 shadow-xl border border-white/10 hidden transition-all duration-300">
+                <!-- Scanner Loading Skeleton -->
+                <div id="scannerLoadingState" class="p-8 text-center space-y-4">
+                    <div class="relative w-12 h-12 mx-auto">
+                        <div class="w-12 h-12 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-blue-400 font-bold text-xs">⚡</div>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-white tracking-tight" id="scannerStatusTitle">Discovering Website Architecture...</h3>
+                        <p class="text-xs text-zinc-400 max-w-sm mx-auto" id="scannerStatusText">Scanning internal pages, navigation trees, and extracting granular inner UI sections...</p>
+                    </div>
+                </div>
+
+                <!-- Mapped Content Tree View -->
+                <div id="scannerContent" class="space-y-4 hidden">
+                    <!-- Top Summary & Filter Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                    <polyline points="2 17 12 22 22 17"></polyline>
+                                    <polyline points="2 12 12 17 22 12"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-semibold text-white" id="siteScanTitle">Website Architecture</h3>
+                                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium" id="siteScanBadge">Ready to Filter</span>
+                                </div>
+                                <div class="text-xs text-zinc-400 font-mono truncate max-w-sm" id="siteScanUrl">https://...</div>
+                            </div>
+                        </div>
+
+                        <!-- Search Filter -->
+                        <div class="relative flex-1 sm:max-w-xs">
+                            <input 
+                                type="text" 
+                                id="selectorSearchInput" 
+                                placeholder="Filter pages & sections (e.g. hero, pricing)..." 
+                                class="w-full bg-[#0c0c10] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50"
+                            />
+                            <svg class="absolute right-2.5 top-2 text-zinc-500 pointer-events-none" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Quick Batch Actions & Live Counters -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-black/20 p-2.5 rounded-lg border border-white/[0.06]">
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="btnSelectAll" class="px-2.5 py-1 rounded bg-white/[0.06] hover:bg-white/10 text-zinc-300 hover:text-white transition-colors">Select All</button>
+                            <button type="button" id="btnDeselectAll" class="px-2.5 py-1 rounded bg-white/[0.06] hover:bg-white/10 text-zinc-300 hover:text-white transition-colors">Deselect All</button>
+                            <button type="button" id="btnLandingOnly" class="px-2.5 py-1 rounded bg-white/[0.06] hover:bg-white/10 text-zinc-300 hover:text-white transition-colors">Home Page Only</button>
+                        </div>
+                        <div class="font-mono text-zinc-400 flex items-center gap-2">
+                            <span>Selected:</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold" id="selectionSummaryPill">0 Pages • 0 Sections</span>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Hierarchical Pages & Inner Sections List -->
+                    <div id="pagesTreeList" class="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                        <!-- Dynamically populated page cards -->
+                    </div>
+
+                    <!-- Bottom Action Controls -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/[0.08]">
+                        <button type="button" id="btnCancelSelection" class="btn-ghost-action text-xs w-full sm:w-auto">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            <span>Cancel & Change URL</span>
+                        </button>
+                        <button type="button" id="btnProceedDownload" class="btn-primary-action px-6 py-2.5 w-full sm:w-auto">
+                            <span id="btnProceedText">Download Selected Pages & Sections</span>
+                            <svg class="btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
 
             <!-- 3. REAL-TIME PROGRESS & TERMINAL CONSOLE -->
             <section id="progressSection" class="surface-card p-4 space-y-3 hidden">

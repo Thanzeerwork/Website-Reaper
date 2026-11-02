@@ -22,6 +22,8 @@ class ClonerEngine {
             maxDepth: options.maxDepth || 3,
             timeout: options.timeout || 45000,
             userAgent: options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+            selectedPages: options.selectedPages || null,
+            pageSectionFilters: options.pageSectionFilters || null,
             ...options
         };
     }
@@ -173,7 +175,20 @@ class ClonerEngine {
             });
 
             // Crawl queue setup
-            const queue = [{ url: normalizedStartUrl, depth: 0 }];
+            const queue = [];
+            const allowedSelectedUrls = new Set();
+            if (Array.isArray(this.options.selectedPages) && this.options.selectedPages.length > 0) {
+                this.options.selectedPages.forEach(u => {
+                    const norm = this._normalizeUrl(u, targetUrl);
+                    if (norm) {
+                        allowedSelectedUrls.add(norm);
+                        queue.push({ url: norm, depth: 0 });
+                    }
+                });
+            }
+            if (queue.length === 0) {
+                queue.push({ url: normalizedStartUrl, depth: 0 });
+            }
             const visited = new Set();
             const urlToPathMap = new Map();
             
@@ -328,6 +343,10 @@ class ClonerEngine {
                             if (linkHost === rootHostname) {
                                 const normalizedLink = this._normalizeUrl(link, current.url);
                                 if (normalizedLink && !visited.has(normalizedLink)) {
+                                    // If user specified selected pages, restrict to those pages
+                                    if (allowedSelectedUrls.size > 0 && !allowedSelectedUrls.has(normalizedLink)) {
+                                        continue;
+                                    }
                                     // Check if not already in queue
                                     const inQueue = queue.some(item => item.url === normalizedLink);
                                     if (!inQueue && (visited.size + queue.length) < this.options.maxPages) {
@@ -369,6 +388,10 @@ class ClonerEngine {
                 });
 
                 let rawHtml = pageItem.rawHtml || '';
+                // Prune any unselected sections before asset localization
+                if (this.options.pageSectionFilters) {
+                    rawHtml = this._prunePageSections(rawHtml, pageItem.localPath, pageItem.url, emit);
+                }
                 // Inject any dynamic styles captured from CSSOM (styled-jsx, emotion, styled-components)
                 if (pageItem.dynamicCss && pageItem.dynamicCss.trim().length > 0) {
                     if (rawHtml.includes('</head>')) {
@@ -459,6 +482,67 @@ class ClonerEngine {
                 }, stepDelay);
             });
         }, delay);
+    }
+
+    /**
+     * Prune unselected sections on a specific captured page
+     */
+    _prunePageSections(rawHtml, localPath, pageUrl, emit) {
+        if (!this.options.pageSectionFilters) return rawHtml;
+        const cheerio = require('cheerio');
+        const filters = this.options.pageSectionFilters;
+        let filter = null;
+        for (const [key, val] of Object.entries(filters)) {
+            if (
+                key === localPath ||
+                (localPath === 'index.html' && (key === '/' || key === '')) ||
+                key === pageUrl ||
+                key.endsWith('/' + localPath)
+            ) {
+                filter = val;
+                break;
+            }
+        }
+        if (!filter) filter = filters['*'];
+        if (!filter) return rawHtml;
+
+        try {
+            const $ = cheerio.load(rawHtml, { decodeEntities: false });
+            let removedCount = 0;
+            if (filter.excludedSelectors && Array.isArray(filter.excludedSelectors)) {
+                for (const sel of filter.excludedSelectors) {
+                    if (!sel) continue;
+                    try {
+                        const m = $(sel);
+                        if (m.length > 0) {
+                            m.remove();
+                            removedCount++;
+                        }
+                    } catch {}
+                }
+            }
+            if (filter.excludedHeadings && Array.isArray(filter.excludedHeadings)) {
+                for (const heading of filter.excludedHeadings) {
+                    if (!heading) continue;
+                    const hNorm = heading.trim().toLowerCase();
+                    $('h1, h2, h3').each((_, hEl) => {
+                        if ($(hEl).text().trim().toLowerCase() === hNorm) {
+                            let container = $(hEl);
+                            while (container.parent().length && container.parent().find('h1, h2').length === 1 && !container.parent().is('body')) {
+                                container = container.parent();
+                            }
+                            container.remove();
+                            removedCount++;
+                        }
+                    });
+                }
+            }
+            if (removedCount > 0) {
+                emit('processing', `Pruned ${removedCount} unselected section(s) from ${localPath}`);
+                return $.html();
+            }
+        } catch {}
+        return rawHtml;
     }
 }
 

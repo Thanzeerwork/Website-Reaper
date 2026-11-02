@@ -371,3 +371,56 @@ input:checked + .slider:before {
 .animate-spin-fast {
     animation: spin 0.75s linear infinite;
 }
+
+/* Site Architecture & Section Selector Tree */
+.page-card-node {
+    background: rgba(18, 18, 22, 0.75);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-card-node:hover {
+    border-color: var(--border-hover);
+}
+
+.page-card-node.has-selected {
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.section-item-row {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    transition: all 0.15s ease;
+}
+
+.section-item-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.section-item-row.is-excluded {
+    opacity: 0.45;
+    background: transparent;
+    text-decoration: line-through;
+}
+
+.section-tag-badge {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8;
+    text-transform: lowercase;
+}
+
+.section-tag-badge.header { color: #38bdf8; border-color: rgba(56, 189, 248, 0.2); background: rgba(56, 189, 248, 0.08); }
+.section-tag-badge.footer { color: #fbbf24; border-color: rgba(251, 191, 36, 0.2); background: rgba(251, 191, 36, 0.08); }
+.section-tag-badge.section { color: #a78bfa; border-color: rgba(167, 139, 250, 0.2); background: rgba(167, 139, 250, 0.08); }
+.section-tag-badge.article { color: #34d399; border-color: rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.08); }
+.section-tag-badge.div { color: #94a3b8; }
+

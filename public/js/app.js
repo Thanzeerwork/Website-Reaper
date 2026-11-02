@@ -27,6 +27,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const userAgentSelect = document.getElementById('userAgentSelect');
     const customHeadersInput = document.getElementById('customHeadersInput');
 
+    // Interactive Site Map & Section Selector Elements
+    const selectiveModeToggle = document.getElementById('selectiveModeToggle');
+    const siteSelectorSection = document.getElementById('siteSelectorSection');
+    const scannerLoadingState = document.getElementById('scannerLoadingState');
+    const scannerStatusTitle = document.getElementById('scannerStatusTitle');
+    const scannerStatusText = document.getElementById('scannerStatusText');
+    const scannerContent = document.getElementById('scannerContent');
+    const siteScanTitle = document.getElementById('siteScanTitle');
+    const siteScanUrl = document.getElementById('siteScanUrl');
+    const siteScanBadge = document.getElementById('siteScanBadge');
+    const selectorSearchInput = document.getElementById('selectorSearchInput');
+    const btnSelectAll = document.getElementById('btnSelectAll');
+    const btnDeselectAll = document.getElementById('btnDeselectAll');
+    const btnLandingOnly = document.getElementById('btnLandingOnly');
+    const selectionSummaryPill = document.getElementById('selectionSummaryPill');
+    const pagesTreeList = document.getElementById('pagesTreeList');
+    const btnCancelSelection = document.getElementById('btnCancelSelection');
+    const btnProceedDownload = document.getElementById('btnProceedDownload');
+    const btnProceedText = document.getElementById('btnProceedText');
+
     // Progress & Terminal
     const progressSection = document.getElementById('progressSection');
     const activeUrlText = document.getElementById('activeUrlText');
@@ -89,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentEventSource = null;
     let currentPreviewUrl = '';
     let currentCloneId = '';
+    let currentScannedData = null;
+    let selectedPageUrls = new Set();
+    let excludedSectionIds = new Map(); // pageUrl -> Set of excluded section IDs
 
     // ----------------------------------------------------
     // Theme Mode Controller
@@ -219,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // Form Submit: Start Deep Clone Job
+    // Form Submit: Selective Scan vs Direct Reap
     // ----------------------------------------------------
     cloneForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -238,24 +261,435 @@ document.addEventListener('DOMContentLoaded', () => {
             currentEventSource = null;
         }
 
+        const isSelective = selectiveModeToggle ? selectiveModeToggle.checked : true;
+        if (isSelective) {
+            await scanWebsiteStructure(rawUrl);
+        } else {
+            const payload = buildClonePayload(rawUrl);
+            await startCloneJob(payload);
+        }
+    });
+
+    function buildClonePayload(rawUrl, selectedPages = null, pageSectionFilters = null) {
+        return {
+            url: rawUrl,
+            engineMode: engineModeSelect ? engineModeSelect.value : 'hybrid',
+            viewport: viewportSelect ? viewportSelect.value : 'desktop',
+            deepCrawl: crawlMode ? crawlMode.value === 'true' : true,
+            maxPages: maxPagesSelect ? parseInt(maxPagesSelect.value, 10) : 20,
+            mediaFilter: mediaFilterSelect ? mediaFilterSelect.value : 'all',
+            quota: quotaSelect ? quotaSelect.value : '500m',
+            prewarm: prewarmCheckbox ? prewarmCheckbox.checked : true,
+            delay: settleDelay ? parseInt(settleDelay.value, 10) : 2500,
+            userAgentPreset: userAgentSelect ? userAgentSelect.value : 'desktop-win',
+            customHeaders: customHeadersInput ? customHeadersInput.value.trim() : '',
+            selectedPages,
+            pageSectionFilters
+        };
+    }
+
+    /**
+     * Phase 1: Interactive Site Architecture & Section Scanning
+     */
+    async function scanWebsiteStructure(rawUrl) {
         setLoadingState(true);
-        resetProgressUI(rawUrl);
+        if (siteSelectorSection) {
+            siteSelectorSection.classList.remove('hidden');
+            if (scannerLoadingState) scannerLoadingState.classList.remove('hidden');
+            if (scannerContent) scannerContent.classList.add('hidden');
+            siteSelectorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (progressSection) progressSection.classList.add('hidden');
+        if (resultSection) resultSection.classList.add('hidden');
+        if (previewContainer) previewContainer.classList.add('hidden');
 
         try {
-            const payload = {
-                url: rawUrl,
-                engineMode: engineModeSelect ? engineModeSelect.value : 'hybrid',
-                viewport: viewportSelect ? viewportSelect.value : 'desktop',
-                deepCrawl: crawlMode ? crawlMode.value === 'true' : true,
-                maxPages: maxPagesSelect ? parseInt(maxPagesSelect.value, 10) : 20,
-                mediaFilter: mediaFilterSelect ? mediaFilterSelect.value : 'all',
-                quota: quotaSelect ? quotaSelect.value : '500m',
-                prewarm: prewarmCheckbox ? prewarmCheckbox.checked : true,
-                delay: settleDelay ? parseInt(settleDelay.value, 10) : 2500,
-                userAgentPreset: userAgentSelect ? userAgentSelect.value : 'desktop-win',
-                customHeaders: customHeadersInput ? customHeadersInput.value.trim() : ''
-            };
+            const scanResponse = await fetch('/api/scan-site', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: rawUrl,
+                    maxPages: maxPagesSelect ? parseInt(maxPagesSelect.value, 10) : 20,
+                    userAgentPreset: userAgentSelect ? userAgentSelect.value : 'desktop-win'
+                })
+            });
 
+            const data = await scanResponse.json();
+            if (!scanResponse.ok || !data.success) {
+                throw new Error(data.error || 'Failed to scan website structure');
+            }
+
+            currentScannedData = data;
+            renderSiteArchitectureTree(data);
+
+            if (scannerLoadingState) scannerLoadingState.classList.add('hidden');
+            if (scannerContent) scannerContent.classList.remove('hidden');
+            setLoadingState(false);
+        } catch (err) {
+            setLoadingState(false);
+            if (siteSelectorSection) siteSelectorSection.classList.add('hidden');
+            alert(`Unable to map website structure: ${err.message}. You can uncheck "Inspect & Select" to run a direct full-site clone.`);
+        }
+    }
+
+    /**
+     * Render the visual pages and inner sections hierarchy
+     */
+    function renderSiteArchitectureTree(data) {
+        if (!pagesTreeList) return;
+
+        if (siteScanTitle) siteScanTitle.textContent = data.siteTitle || data.domain;
+        if (siteScanUrl) siteScanUrl.textContent = data.url;
+        if (siteScanBadge) siteScanBadge.textContent = `${data.totalPages} Pages • ${data.totalSections} Sections`;
+
+        selectedPageUrls.clear();
+        excludedSectionIds.clear();
+
+        data.pages.forEach(p => {
+            selectedPageUrls.add(p.url);
+            excludedSectionIds.set(p.url, new Set());
+        });
+
+        pagesTreeList.innerHTML = '';
+
+        data.pages.forEach((page, pIdx) => {
+            const pageCard = document.createElement('div');
+            pageCard.className = 'page-card-node p-3.5 space-y-2.5 transition-all';
+            pageCard.dataset.pageUrl = page.url;
+            pageCard.dataset.pagePath = page.path;
+
+            const sectionsCount = page.sections ? page.sections.length : 0;
+
+            // Page Header Bar
+            const headerRow = document.createElement('div');
+            headerRow.className = 'flex items-center justify-between gap-3 select-none';
+            headerRow.innerHTML = `
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <input 
+                        type="checkbox" 
+                        class="page-checkbox rounded bg-black/40 border-white/20 text-blue-500 focus:ring-0 cursor-pointer h-4 w-4" 
+                        data-page-url="${page.url}" 
+                        checked
+                    />
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-xs text-white truncate">${escapeHtml(page.title || page.path)}</span>
+                            ${page.isHome ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Landing</span>' : ''}
+                        </div>
+                        <div class="text-[11px] text-zinc-500 font-mono truncate">${escapeHtml(page.path)}</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-400 font-mono">
+                        ${sectionsCount} ${sectionsCount === 1 ? 'Section' : 'Sections'}
+                    </span>
+                    <button type="button" class="btn-toggle-drawer p-1 rounded hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-transform duration-200">
+                        <svg class="chevron-icon transform transition-transform" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            // Sections Container Drawer
+            const sectionsDrawer = document.createElement('div');
+            sectionsDrawer.className = 'sections-drawer pt-2 border-t border-white/[0.06] space-y-1.5';
+
+            if (page.sections && page.sections.length > 0) {
+                page.sections.forEach((sec, sIdx) => {
+                    const secRow = document.createElement('div');
+                    secRow.className = 'section-item-row flex items-start gap-2.5 text-xs';
+                    secRow.dataset.secId = sec.id;
+                    secRow.dataset.pageUrl = page.url;
+
+                    secRow.innerHTML = `
+                        <input 
+                            type="checkbox" 
+                            class="section-checkbox rounded bg-black/40 border-white/20 text-blue-500 focus:ring-0 cursor-pointer h-3.5 w-3.5 mt-0.5 shrink-0" 
+                            data-page-url="${page.url}" 
+                            data-sec-id="${sec.id}"
+                            data-sec-selector="${escapeHtml(sec.selector)}"
+                            data-sec-heading="${escapeHtml(sec.heading || '')}"
+                            checked
+                        />
+                        <div class="flex-1 min-w-0 space-y-0.5">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="section-tag-badge ${sec.tag}">${sec.tag}</span>
+                                <span class="font-medium text-zinc-200 truncate">${escapeHtml(sec.name)}</span>
+                                ${sec.selector ? `<span class="text-[10px] text-zinc-500 font-mono">(${escapeHtml(sec.selector)})</span>` : ''}
+                            </div>
+                            <p class="text-[11px] text-zinc-400 line-clamp-1 font-normal">${escapeHtml(sec.preview || '')}</p>
+                        </div>
+                    `;
+
+                    // Checkbox change inside section
+                    const secCheck = secRow.querySelector('.section-checkbox');
+                    secCheck.addEventListener('change', () => {
+                        const excludedSet = excludedSectionIds.get(page.url);
+                        if (secCheck.checked) {
+                            excludedSet.delete(sec.id);
+                            secRow.classList.remove('is-excluded');
+                        } else {
+                            excludedSet.add(sec.id);
+                            secRow.classList.add('is-excluded');
+                        }
+
+                        // Synchronize parent page checkbox
+                        const pageCheck = headerRow.querySelector('.page-checkbox');
+                        const totalSecs = page.sections.length;
+                        const excludedCount = excludedSet.size;
+
+                        if (excludedCount === totalSecs) {
+                            pageCheck.checked = false;
+                            selectedPageUrls.delete(page.url);
+                        } else {
+                            pageCheck.checked = true;
+                            selectedPageUrls.add(page.url);
+                        }
+                        updateSelectionSummary();
+                    });
+
+                    sectionsDrawer.appendChild(secRow);
+                });
+            } else {
+                sectionsDrawer.innerHTML = '<div class="text-[11px] text-zinc-500 italic p-1">No individual inner section tags detected (full page will be captured).</div>';
+            }
+
+            // Event listener for parent page checkbox
+            const pageCheck = headerRow.querySelector('.page-checkbox');
+            pageCheck.addEventListener('change', () => {
+                const isChecked = pageCheck.checked;
+                const excludedSet = excludedSectionIds.get(page.url);
+
+                if (isChecked) {
+                    selectedPageUrls.add(page.url);
+                    excludedSet.clear();
+                } else {
+                    selectedPageUrls.delete(page.url);
+                    if (page.sections) {
+                        page.sections.forEach(s => excludedSet.add(s.id));
+                    }
+                }
+
+                // Update all inner section checkboxes visually
+                sectionsDrawer.querySelectorAll('.section-checkbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+                sectionsDrawer.querySelectorAll('.section-item-row').forEach(row => {
+                    if (isChecked) row.classList.remove('is-excluded');
+                    else row.classList.add('is-excluded');
+                });
+
+                updateSelectionSummary();
+            });
+
+            // Chevron toggle drawer
+            const btnToggle = headerRow.querySelector('.btn-toggle-drawer');
+            const chevron = headerRow.querySelector('.chevron-icon');
+            btnToggle.addEventListener('click', () => {
+                const isHidden = sectionsDrawer.classList.contains('hidden');
+                if (isHidden) {
+                    sectionsDrawer.classList.remove('hidden');
+                    chevron.classList.remove('rotate-180');
+                } else {
+                    sectionsDrawer.classList.add('hidden');
+                    chevron.classList.add('rotate-180');
+                }
+            });
+
+            pageCard.appendChild(headerRow);
+            pageCard.appendChild(sectionsDrawer);
+            pagesTreeList.appendChild(pageCard);
+        });
+
+        updateSelectionSummary();
+        bindBatchActionButtons();
+    }
+
+    function updateSelectionSummary() {
+        if (!currentScannedData || !currentScannedData.pages) return;
+
+        let totalSelectedPages = selectedPageUrls.size;
+        let totalSelectedSections = 0;
+
+        currentScannedData.pages.forEach(p => {
+            if (selectedPageUrls.has(p.url)) {
+                const totalInPage = p.sections ? p.sections.length : 1;
+                const excludedSet = excludedSectionIds.get(p.url) || new Set();
+                const active = Math.max(0, totalInPage - excludedSet.size);
+                totalSelectedSections += active;
+            }
+        });
+
+        if (selectionSummaryPill) {
+            selectionSummaryPill.textContent = `${totalSelectedPages} Pages • ${totalSelectedSections} Sections`;
+        }
+        if (btnProceedText) {
+            btnProceedText.textContent = `Download Selected (${totalSelectedPages} Pages, ${totalSelectedSections} Sections)`;
+        }
+    }
+
+    function bindBatchActionButtons() {
+        if (btnSelectAll) {
+            btnSelectAll.onclick = () => {
+                if (!currentScannedData) return;
+                currentScannedData.pages.forEach(p => {
+                    selectedPageUrls.add(p.url);
+                    const exc = excludedSectionIds.get(p.url);
+                    if (exc) exc.clear();
+                });
+                document.querySelectorAll('#pagesTreeList .page-checkbox, #pagesTreeList .section-checkbox').forEach(cb => {
+                    cb.checked = true;
+                });
+                document.querySelectorAll('#pagesTreeList .section-item-row').forEach(r => {
+                    r.classList.remove('is-excluded');
+                });
+                updateSelectionSummary();
+            };
+        }
+
+        if (btnDeselectAll) {
+            btnDeselectAll.onclick = () => {
+                if (!currentScannedData) return;
+                selectedPageUrls.clear();
+                currentScannedData.pages.forEach(p => {
+                    const exc = excludedSectionIds.get(p.url);
+                    if (exc && p.sections) {
+                        p.sections.forEach(s => exc.add(s.id));
+                    }
+                });
+                document.querySelectorAll('#pagesTreeList .page-checkbox, #pagesTreeList .section-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                document.querySelectorAll('#pagesTreeList .section-item-row').forEach(r => {
+                    r.classList.add('is-excluded');
+                });
+                updateSelectionSummary();
+            };
+        }
+
+        if (btnLandingOnly) {
+            btnLandingOnly.onclick = () => {
+                if (!currentScannedData) return;
+                selectedPageUrls.clear();
+                currentScannedData.pages.forEach(p => {
+                    const exc = excludedSectionIds.get(p.url);
+                    if (p.isHome) {
+                        selectedPageUrls.add(p.url);
+                        if (exc) exc.clear();
+                    } else {
+                        if (exc && p.sections) {
+                            p.sections.forEach(s => exc.add(s.id));
+                        }
+                    }
+                });
+                document.querySelectorAll('#pagesTreeList .page-card-node').forEach(card => {
+                    const isHome = card.querySelector('.page-checkbox').dataset.pageUrl === currentScannedData.url;
+                    const pageCb = card.querySelector('.page-checkbox');
+                    pageCb.checked = isHome;
+                    card.querySelectorAll('.section-checkbox').forEach(sc => sc.checked = isHome);
+                    card.querySelectorAll('.section-item-row').forEach(r => {
+                        if (isHome) r.classList.remove('is-excluded');
+                        else r.classList.add('is-excluded');
+                    });
+                });
+                updateSelectionSummary();
+            };
+        }
+
+        if (selectorSearchInput) {
+            selectorSearchInput.oninput = (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                document.querySelectorAll('#pagesTreeList .page-card-node').forEach(card => {
+                    const pageTitle = (card.querySelector('.page-checkbox').parentElement.textContent || '').toLowerCase();
+                    const sectionRows = card.querySelectorAll('.section-item-row');
+                    let anySectionMatches = false;
+
+                    sectionRows.forEach(row => {
+                        const rowText = (row.textContent || '').toLowerCase();
+                        if (!query || rowText.includes(query) || pageTitle.includes(query)) {
+                            row.classList.remove('hidden');
+                            anySectionMatches = true;
+                        } else {
+                            row.classList.add('hidden');
+                        }
+                    });
+
+                    if (!query || anySectionMatches || pageTitle.includes(query)) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            };
+        }
+
+        if (btnCancelSelection) {
+            btnCancelSelection.onclick = () => {
+                if (siteSelectorSection) siteSelectorSection.classList.add('hidden');
+                if (urlInput) urlInput.focus();
+            };
+        }
+
+        if (btnProceedDownload) {
+            btnProceedDownload.onclick = async () => {
+                if (selectedPageUrls.size === 0) {
+                    alert('Please select at least 1 page or section to download.');
+                    return;
+                }
+
+                // Compile selected pages array
+                const selectedPages = Array.from(selectedPageUrls);
+
+                // Compile section pruning filters
+                const pageSectionFilters = {};
+                currentScannedData.pages.forEach(p => {
+                    const excludedSet = excludedSectionIds.get(p.url);
+                    if (excludedSet && excludedSet.size > 0 && p.sections) {
+                        const excludedSelectors = [];
+                        const excludedHeadings = [];
+
+                        p.sections.forEach(s => {
+                            if (excludedSet.has(s.id)) {
+                                if (s.selector) excludedSelectors.push(s.selector);
+                                if (s.heading) excludedHeadings.push(s.heading);
+                            }
+                        });
+
+                        const filterObj = { excludedSelectors, excludedHeadings };
+                        pageSectionFilters[p.path] = filterObj;
+                        pageSectionFilters[p.url] = filterObj;
+                    }
+                });
+
+                if (siteSelectorSection) siteSelectorSection.classList.add('hidden');
+
+                const rawUrl = urlInput.value.trim();
+                const payload = buildClonePayload(rawUrl, selectedPages, pageSectionFilters);
+                await startCloneJob(payload);
+            };
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Start the execution of the cloning job with SSE streaming
+     */
+    async function startCloneJob(payload) {
+        setLoadingState(true);
+        resetProgressUI(payload.url);
+
+        try {
             const response = await fetch('/api/clone', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -275,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
             appendLog('error', err.message);
             alert(`Error initializing clone: ${err.message}`);
         }
-    });
+    }
 
     function setLoadingState(isLoading) {
         if (isLoading) {
