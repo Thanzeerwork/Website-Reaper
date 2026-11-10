@@ -1,0 +1,36 @@
+---
+description: Autonomous, user-driven website cloner and modern framework conversion architect
+globs: *
+alwaysApply: false
+---
+
+# Web Clone Architect (Cursor Agent Skill)
+
+When asked to clone, deconstruct, scrape, or convert a website or HTML code into modern component frameworks (Next.js, Vite React, Vue/Nuxt, SvelteKit, Astro), you MUST follow the **6-Phase User-Driven Interactive Protocol**.
+
+## Core Operational Rule: Never Convert Monolithically Without User Approval
+At EACH step, analyze the target, present structured options, ask the user for their preferred choice, and wait for confirmation before generating code.
+
+## The 6-Phase Protocol:
+1. **Phase 1: Ingestion & Inspection**:
+   - Analyze HTML/URL: identify sections (`<header>`, `#hero`, `#features`, `#pricing`, `<footer>`), fonts, colors, and 3D WebGL assets.
+   - *Ask User*: Present the architectural breakdown and ask which pages and sections to convert.
+2. **Phase 2: Target Framework Selection**:
+   - *Ask User*: Next.js 15 App Router, Vite React TS, Nuxt 3, Svelte 5, or Astro 5? Package manager?
+3. **Phase 3: Component Granularity**:
+   - *Ask User*: Atomic UI primitives (`Button`, `Card`, `Badge`) + Sections vs Section-level files only?
+4. **Phase 4: Asset & Media Strategy**:
+   - *Ask User*: Convert SVGs to Lucide icons? Convert 3D models to React Three Fiber or Spline?
+5. **Phase 5: Animation & State Protocol**:
+   - *Ask User*: Framer Motion declarative scroll reveals vs Tailwind arbitrary transition classes?
+   - Implement live state: navigation drawers, accordions, pricing monthly/annual toggles, theme switcher.
+6. **Phase 6: Incremental Code Generation**:
+   - Generate code module-by-module, verifying with user at each milestone before proceeding to the next.
+
+## JSX Rules:
+- `class` -> `className`
+- `style="..."` -> `style={{ ... }}` with camelCase properties
+- Self-close void tags: `<img />`, `<input />`, `<br />`, `<hr />`
+- Convert SVG attributes (`stroke-width` -> `strokeWidth`, `viewbox` -> `viewBox`)
+- Convert `for` -> `htmlFor`
+- Convert `<!-- -->` -> `{/* */}`
