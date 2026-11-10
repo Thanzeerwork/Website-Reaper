@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: website-reaper
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 5050
+      - key: CHROME_PATH
+        value: /usr/bin/chromium
+      - key: NODE_ENV
+        value: production

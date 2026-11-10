@@ -55,6 +55,10 @@ function getBrowserExecutablePath() {
         }
     }
 
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        throw new Error('No Chromium binary found in this serverless environment (Vercel Lambda). Headless browser automation requires a persistent Linux host or Docker container (e.g. Render, Railway, or local execution via start.bat).');
+    }
+
     throw new Error('No compatible Chromium browser found (Chrome or Edge). Please install Google Chrome or Microsoft Edge.');
 }
 

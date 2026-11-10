@@ -162,6 +162,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/api/engine-status')
         .then(r => r.json())
         .then(data => {
+            if (data.isServerless) {
+                const badgeText = document.getElementById('engineStatusBadgeText');
+                const badgeDot = document.getElementById('engineStatusDot');
+                const banner = document.getElementById('serverlessBanner');
+                if (badgeText) badgeText.textContent = 'Serverless (Vercel)';
+                if (badgeDot) {
+                    badgeDot.classList.remove('bg-emerald-500');
+                    badgeDot.classList.add('bg-amber-400');
+                }
+                if (banner) banner.classList.remove('hidden');
+            }
+
             if (engineModeSelect) {
                 engineModeSelect.value = 'hybrid';
                 if (!data.wgetAvailable) {

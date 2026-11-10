@@ -14,15 +14,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Storage directories
-const STORAGE_DIR = path.join(__dirname, 'storage');
+// Detect serverless / cloud read-only environments (Vercel, AWS Lambda, Netlify)
+const isServerless = Boolean(
+    process.env.VERCEL ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.LAMBDA_TASK_ROOT ||
+    process.env.NETLIFY
+);
+
+// Storage directories: use /tmp in serverless environments to avoid read-only filesystem errors (EROFS)
+const STORAGE_DIR = isServerless ? path.join('/tmp', 'reaper-storage') : path.join(__dirname, 'storage');
 const CLONES_DIR = path.join(STORAGE_DIR, 'clones');
 const ZIPS_DIR = path.join(STORAGE_DIR, 'zips');
 const DB_FILE = path.join(STORAGE_DIR, 'history.json');
 
-[STORAGE_DIR, CLONES_DIR, ZIPS_DIR].forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
+try {
+    [STORAGE_DIR, CLONES_DIR, ZIPS_DIR].forEach((dir) => {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    });
+} catch (fsErr) {
+    console.warn('[Storage] Notice initializing storage directory:', fsErr.message);
+}
 
 // Database helpers for persistent history
 function loadHistory() {
@@ -49,7 +61,8 @@ const activeJobs = new Map(); // id -> { id, url, status, logs: [], sseClients: 
 app.get('/api/engine-status', (req, res) => {
     res.json({
         wgetAvailable: WgetCrawler.isAvailable(),
-        defaultEngine: 'hybrid'
+        defaultEngine: 'hybrid',
+        isServerless
     });
 });
 
@@ -466,10 +479,14 @@ app.delete('/api/clones/:id', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(` Website Reaper server listening at http://localhost:${PORT}`);
-    console.log(` Ready to clone any website with animations & assets!`);
-    console.log(`====================================================`);
-});
+if (require.main === module || !isServerless) {
+    app.listen(PORT, () => {
+        console.log(`====================================================`);
+        console.log(` Website Reaper server listening at http://localhost:${PORT}`);
+        console.log(` Ready to clone any website with animations & assets!`);
+        console.log(`====================================================`);
+    });
+}
+
+module.exports = app;
 

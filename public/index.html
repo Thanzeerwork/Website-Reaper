@@ -50,8 +50,8 @@
                         <span class="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-400 font-medium">v2.0</span>
                     </div>
                     <div class="hidden sm:flex items-center gap-1.5 ml-2 pl-3 border-l border-white/10 text-xs text-zinc-400 font-normal">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Hybrid Engine Ready</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" id="engineStatusDot"></span>
+                        <span id="engineStatusBadgeText">Hybrid Engine Ready</span>
                     </div>
                 </div>
 
@@ -89,6 +89,22 @@
 
         <!-- ================= MAIN CONTENT ================= -->
         <main class="max-w-4xl mx-auto px-4 md:px-6 py-10 flex-1 flex flex-col gap-8 w-full">
+
+            <!-- Serverless Environment Notice Banner (visible if deployed on Vercel) -->
+            <div id="serverlessBanner" class="hidden p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                <div class="flex items-start gap-2.5">
+                    <svg class="shrink-0 text-amber-400 mt-0.5" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div class="space-y-1">
+                        <div><strong>Vercel Serverless Detected:</strong> Vercel Lambdas enforce a 10s execution limit and lack headless Chromium.</div>
+                        <div class="text-[11px] text-amber-400/90">For 100% full-fidelity crawling with WebGL 3D, animations, and persistent storage, deploy on <strong>Render (using Docker)</strong> or run locally using <code>start.bat</code>.</div>
+                    </div>
+                </div>
+                <button type="button" onclick="document.getElementById('serverlessBanner').classList.add('hidden')" class="text-amber-400 hover:text-white text-xs px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 shrink-0 self-end sm:self-center">Dismiss</button>
+            </div>
 
             <!-- 1. HERO SECTION -->
             <section class="text-center space-y-3 pt-4">

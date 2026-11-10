@@ -87,6 +87,23 @@ The dashboard will open automatically in your default browser at:
 
 ---
 
+## ☁️ Cloud Deployment
+
+### Option A: Render.com (Recommended — Full Headless Browser Power)
+Because Website Reaper performs deep browser automation (Chromium), multi-threaded downloading (Wget), and real-time SSE streaming, it thrives on persistent cloud hosts like **Render** or **Railway**:
+1. Go to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** > **Web Service**.
+3. Select your repository `Thanzeerwork/Website-Reaper`.
+4. Render will automatically detect the included **`Dockerfile`**.
+5. Select the **Free** tier and click **Deploy Web Service**!
+   *(The Docker image automatically bundles Linux Chromium, Wget, fonts, and sets all flags for 100% full-fidelity harvesting without serverless timeouts).*
+
+### Option B: Vercel Deployment
+The repository includes `vercel.json` and `api/index.js` for Vercel Serverless deployments:
+> ⚠️ **Note on Vercel Serverless Limits**: Vercel functions run in ephemeral serverless lambdas with a strict **10-second timeout** on the Hobby tier and lack pre-installed Chrome/Wget binaries. While the UI and architecture scanner load on Vercel, deep multi-page crawling and heavy 3D asset harvesting should be run on **Render** (via Docker) or **locally on your machine**.
+
+---
+
 ## 🕹️ Usage Guide
 
 1. **Enter Target URL**: Paste the URL of the website you want to clone (e.g., `https://tailwindcss.com`, `https://spline.design`, or any React Bits demo).
