@@ -57,6 +57,17 @@ Every export includes native offline launchers:
 - `run.sh` for macOS / Linux.
 - Zero-dependency built-in Node.js HTTP static server (`server.js`).
 
+### 🤖 AI Agent Skills (Export & Modern Framework Conversion)
+Directly from the Website Reaper dashboard or this repository, you can download the **Web Clone Architect** skill to turn cloned sites into production-grade component architectures using your favorite AI coding agent:
+- **Supported Frameworks**: Next.js 15 (App Router), Vite + React (TypeScript), Nuxt 3 (Vue 3), SvelteKit (Svelte 5), Astro 5.
+- **Modern Styling & Motion**: Tailwind CSS v3/v4 design token extraction, Lucide icons, Framer Motion scroll reveals, React Three Fiber (R3F), and Spline 3D embeds.
+- **Supported Agents**:
+  - 🔵 **Google Antigravity (AGY)**: `~/.gemini/config/skills/web-clone-architect/SKILL.md`
+  - ⚡ **Cursor IDE**: `.cursorrules` & `.cursor/rules/web-clone-architect.mdc`
+  - 🟣 **Anthropic Claude Code**: `CLAUDE.md` & `.claude/skills/web-clone-architect/`
+  - 🟢 **OpenAI Codex / ChatGPT**: `AGENTS.md`
+- **User-Driven Protocol**: Strictly guides the user through 6 interactive decision gates (Section selection, Framework, Granularity, 3D/SVG strategy, Animations, and Module Verification).
+
 ---
 
 ## 🚀 Quick Start

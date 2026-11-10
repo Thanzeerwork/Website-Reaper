@@ -57,6 +57,16 @@
 
                 <!-- Navigation & Action Buttons -->
                 <div class="flex items-center gap-2">
+                    <button id="btnOpenSkillsModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 hover:from-blue-600/30 hover:to-purple-600/30 border border-blue-500/30 text-white text-xs font-medium transition-all shadow-sm" type="button">
+                        <svg class="text-blue-400" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                        <span>AI Agent Skills</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/30 text-blue-300 font-mono">v1.0</span>
+                    </button>
+
                     <button id="btnHowToRun" class="btn-ghost-action text-xs" type="button">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -124,6 +134,41 @@
                     Captures recursive pages, dynamic CSSOM keyframe animations, web fonts, and assets into a runnable bundle with zero-config local servers.
                 </p>
             </section>
+
+            <!-- AI Agent Skills Feature Banner -->
+            <div class="surface-card p-3.5 sm:p-4 rounded-xl border border-blue-500/25 bg-gradient-to-r from-blue-950/30 via-indigo-950/20 to-purple-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xs sm:text-sm font-semibold text-white">AI Agent Skills: Convert Clones to Production Frameworks</h2>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 font-medium">New</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+                            Turn cloned HTML &amp; animations into clean <strong>Next.js 15, Vite React, Nuxt 3, Svelte 5, or Astro 5</strong> components. Download the ready-to-use skill bundle for <strong>Antigravity, Cursor, Claude Code, and Codex</strong>.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    <a href="/api/skills/download?agent=all" class="btn-primary-action text-xs px-3 py-1.5 flex items-center gap-1.5" download title="Download Universal AI Agent Skills ZIP">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download Skills (.ZIP)</span>
+                    </a>
+                    <button type="button" id="btnHeroSkillsDetails" class="btn-ghost-action text-xs px-2.5 py-1.5">
+                        View Guides
+                    </button>
+                </div>
+            </div>
 
             <!-- 2. CLONE INPUT CARD -->
             <div class="surface-card p-3 sm:p-4 space-y-3 shadow-lg">
@@ -708,6 +753,235 @@
 
             <div class="flex justify-end pt-2">
                 <button id="btnGotItModal" class="btn-primary-action text-xs px-4 py-2">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= AI AGENT SKILLS MODAL ================= -->
+    <div id="skillsModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="surface-card max-w-3xl w-full p-5 sm:p-6 space-y-5 shadow-2xl my-6 max-h-[92vh] overflow-y-auto border border-white/10">
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between pb-3 border-b border-white/[0.08] gap-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-semibold text-white">Web Clone Architect — AI Agent Skills</h3>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">v1.0</span>
+                        </div>
+                        <p class="text-xs text-zinc-400 mt-0.5">
+                            Autonomous, user-driven website cloner and modern framework conversion skill for your favorite coding agents.
+                        </p>
+                    </div>
+                </div>
+                <button id="btnCloseSkillsModal" class="text-zinc-500 hover:text-white p-1 transition-colors" title="Close modal (Esc)">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Primary All-in-One Download CTA -->
+            <div class="p-4 rounded-xl bg-gradient-to-r from-blue-600/15 via-indigo-600/15 to-purple-600/15 border border-blue-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner">
+                <div class="space-y-1">
+                    <div class="text-xs font-semibold text-white flex items-center gap-2">
+                        <span>Universal Multi-Agent Skills Bundle</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/30 text-blue-200 font-mono">All-in-1</span>
+                    </div>
+                    <p class="text-[11px] text-zinc-300">
+                        Contains complete configurations for <strong>Antigravity, Cursor, Claude Code, and Codex</strong>, plus CLI AST converters and design token extractors.
+                    </p>
+                </div>
+                <a href="/api/skills/download?agent=all" class="btn-primary-action text-xs px-4 py-2 shrink-0 flex items-center gap-2 shadow-lg" download>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download All Skills (.ZIP)</span>
+                </a>
+            </div>
+
+            <!-- 4 Multi-Agent Cards Grid -->
+            <div class="space-y-2">
+                <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider text-[11px]">
+                    Choose Your Coding Agent:
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    
+                    <!-- 1. Google Antigravity -->
+                    <div class="p-3.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-blue-500/30 transition-all space-y-2.5 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">G</span>
+                                    <span class="font-semibold text-white">Google Antigravity</span>
+                                </div>
+                                <span class="text-[10px] text-blue-400 font-mono">SKILL.md</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400">
+                                Native skill bundle adhering to Antigravity Customization standard. Ingests DOM, extracts tokens, and drives 6 interactive gates.
+                            </p>
+                            <div class="p-2 rounded bg-black/40 border border-white/[0.04] font-mono text-[10px] text-zinc-400 break-all select-all">
+                                ~/.gemini/config/skills/web-clone-architect/
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                            <a href="/api/skills/download?agent=antigravity" class="btn-secondary-action text-xs py-1 px-2.5 flex-1 flex items-center justify-center gap-1.5" download>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Download ZIP</span>
+                            </a>
+                            <button type="button" class="btn-ghost-action text-xs py-1 px-2 text-zinc-300 hover:text-white btn-copy-snippet" data-copy="~/.gemini/config/skills/web-clone-architect/" title="Copy install path">
+                                Copy Path
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Cursor IDE -->
+                    <div class="p-3.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-purple-500/30 transition-all space-y-2.5 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">C</span>
+                                    <span class="font-semibold text-white">Cursor IDE</span>
+                                </div>
+                                <span class="text-[10px] text-purple-400 font-mono">.cursorrules / .mdc</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400">
+                                Modern Cursor rule (<code class="text-zinc-300 font-mono">.cursor/rules/web-clone-architect.mdc</code>) and legacy <code class="text-zinc-300 font-mono">.cursorrules</code> for Cursor Composer.
+                            </p>
+                            <div class="p-2 rounded bg-black/40 border border-white/[0.04] font-mono text-[10px] text-zinc-400 break-all select-all">
+                                .cursor/rules/web-clone-architect.mdc
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                            <a href="/api/skills/download?agent=cursor" class="btn-secondary-action text-xs py-1 px-2.5 flex-1 flex items-center justify-center gap-1.5" download>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Download ZIP</span>
+                            </a>
+                            <button type="button" class="btn-ghost-action text-xs py-1 px-2 text-zinc-300 hover:text-white btn-copy-snippet" data-copy=".cursor/rules/web-clone-architect.mdc" title="Copy rule path">
+                                Copy Path
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Anthropic Claude Code -->
+                    <div class="p-3.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-amber-500/30 transition-all space-y-2.5 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">✦</span>
+                                    <span class="font-semibold text-white">Claude Code</span>
+                                </div>
+                                <span class="text-[10px] text-amber-400 font-mono">CLAUDE.md</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400">
+                                Preconfigured <code class="text-zinc-300 font-mono">CLAUDE.md</code> project instructions and skill files formatted for Claude Code terminal workflows.
+                            </p>
+                            <div class="p-2 rounded bg-black/40 border border-white/[0.04] font-mono text-[10px] text-zinc-400 break-all select-all">
+                                CLAUDE.md &amp; .claude/skills/web-clone-architect/
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                            <a href="/api/skills/download?agent=claude" class="btn-secondary-action text-xs py-1 px-2.5 flex-1 flex items-center justify-center gap-1.5" download>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Download ZIP</span>
+                            </a>
+                            <button type="button" class="btn-ghost-action text-xs py-1 px-2 text-zinc-300 hover:text-white btn-copy-snippet" data-copy="claude" title="Copy CLI command">
+                                Copy Cmd
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4. OpenAI Codex / AGENTS.md -->
+                    <div class="p-3.5 rounded-xl bg-black/25 border border-white/[0.08] hover:border-emerald-500/30 transition-all space-y-2.5 flex flex-col justify-between">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">◈</span>
+                                    <span class="font-semibold text-white">Codex / OpenAI</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-400 font-mono">AGENTS.md</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400">
+                                Adheres to the universal <code class="text-zinc-300 font-mono">AGENTS.md</code> standard, fully supported by Codex, Cursor, and custom agent harnesses.
+                            </p>
+                            <div class="p-2 rounded bg-black/40 border border-white/[0.04] font-mono text-[10px] text-zinc-400 break-all select-all">
+                                AGENTS.md
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                            <a href="/api/skills/download?agent=codex" class="btn-secondary-action text-xs py-1 px-2.5 flex-1 flex items-center justify-center gap-1.5" download>
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Download ZIP</span>
+                            </a>
+                            <button type="button" class="btn-ghost-action text-xs py-1 px-2 text-zinc-300 hover:text-white btn-copy-snippet" data-copy="AGENTS.md" title="Copy filename">
+                                Copy Filename
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- The 6-Phase User-Driven Workflow -->
+            <div class="p-4 rounded-xl bg-black/30 border border-white/[0.06] space-y-2.5">
+                <div class="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-400">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>Strict 6-Phase User-Driven Conversion Protocol</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-zinc-400">
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 1:</span> Ingest DOM &amp; Select Sections
+                    </div>
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 2:</span> Framework Choice (Next/Vite/Nuxt)
+                    </div>
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 3:</span> Component Granularity
+                    </div>
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 4:</span> SVGs &amp; WebGL 3D Strategy
+                    </div>
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 5:</span> Framer Motion &amp; Live States
+                    </div>
+                    <div class="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                        <span class="text-blue-400 font-mono font-semibold">Gate 6:</span> Incremental Build Check
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ready-to-Use Agent Prompt Box -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-zinc-300">Ready-to-Use Agent Prompt:</span>
+                    <span class="text-zinc-500 text-[11px]">Paste directly into your AI assistant</span>
+                </div>
+                <div class="flex items-center justify-between bg-black/40 rounded-lg p-2.5 border border-white/[0.08] font-mono text-xs">
+                    <code id="agentPromptSnippet" class="text-zinc-300 overflow-x-auto select-all pr-2 text-[11px]">
+                        Use the web-clone-architect skill to inspect the cloned website in ./cloned-site and convert it to Next.js 15 App Router with Tailwind CSS and Framer Motion. Guide me step-by-step through each decision.
+                    </code>
+                    <button id="btnCopyPrompt" type="button" class="btn-secondary-action px-2.5 py-1 text-xs shrink-0 ml-2">
+                        <span id="promptCopyLabel">Copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer close -->
+            <div class="flex justify-end pt-2 border-t border-white/[0.08]">
+                <button id="btnDoneSkillsModal" type="button" class="btn-primary-action text-xs px-4 py-2">
+                    Done
+                </button>
             </div>
         </div>
     </div>

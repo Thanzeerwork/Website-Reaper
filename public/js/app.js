@@ -100,6 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCloseModal = document.getElementById('btnCloseModal');
     const btnGotItModal = document.getElementById('btnGotItModal');
 
+    // AI Agent Skills Elements
+    const btnOpenSkillsModal = document.getElementById('btnOpenSkillsModal');
+    const btnHeroSkillsDetails = document.getElementById('btnHeroSkillsDetails');
+    const skillsModal = document.getElementById('skillsModal');
+    const btnCloseSkillsModal = document.getElementById('btnCloseSkillsModal');
+    const btnDoneSkillsModal = document.getElementById('btnDoneSkillsModal');
+    const btnCopyPrompt = document.getElementById('btnCopyPrompt');
+    const promptCopyLabel = document.getElementById('promptCopyLabel');
+    const agentPromptSnippet = document.getElementById('agentPromptSnippet');
+
     // Theme Switcher
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const themeIconDark = document.getElementById('themeIconDark');
@@ -149,6 +159,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 't') {
             toggleTheme();
+        }
+        if (e.key === 'Escape') {
+            if (howToRunModal && !howToRunModal.classList.contains('hidden')) {
+                howToRunModal.classList.add('hidden');
+            }
+            if (skillsModal && !skillsModal.classList.contains('hidden')) {
+                closeSkillsModal();
+            }
         }
     });
 
@@ -252,6 +270,94 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === howToRunModal) howToRunModal.classList.add('hidden');
         });
     }
+
+    // ----------------------------------------------------
+    // AI Agent Skills Modal Handlers
+    // ----------------------------------------------------
+    function openSkillsModal() {
+        if (skillsModal) {
+            skillsModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeSkillsModal() {
+        if (skillsModal) {
+            skillsModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (btnOpenSkillsModal) btnOpenSkillsModal.addEventListener('click', openSkillsModal);
+    if (btnHeroSkillsDetails) btnHeroSkillsDetails.addEventListener('click', openSkillsModal);
+    if (btnCloseSkillsModal) btnCloseSkillsModal.addEventListener('click', closeSkillsModal);
+    if (btnDoneSkillsModal) btnDoneSkillsModal.addEventListener('click', closeSkillsModal);
+
+    if (skillsModal) {
+        skillsModal.addEventListener('click', (e) => {
+            if (e.target === skillsModal) closeSkillsModal();
+        });
+    }
+
+    // 1-Click Copy Prompt
+    if (btnCopyPrompt && agentPromptSnippet) {
+        btnCopyPrompt.addEventListener('click', async () => {
+            const textToCopy = agentPromptSnippet.textContent.trim();
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                if (promptCopyLabel) {
+                    promptCopyLabel.textContent = 'Copied!';
+                    setTimeout(() => {
+                        promptCopyLabel.textContent = 'Copy';
+                    }, 1800);
+                }
+            } catch {
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (promptCopyLabel) {
+                    promptCopyLabel.textContent = 'Copied!';
+                    setTimeout(() => {
+                        promptCopyLabel.textContent = 'Copy';
+                    }, 1800);
+                }
+            }
+        });
+    }
+
+    // 1-Click Copy Snippets for individual agent cards
+    document.querySelectorAll('.btn-copy-snippet').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const snippet = btn.dataset.copy;
+            if (!snippet) return;
+            const originalText = btn.textContent;
+            try {
+                await navigator.clipboard.writeText(snippet);
+                btn.textContent = 'Copied!';
+                btn.classList.add('text-emerald-400');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('text-emerald-400');
+                }, 1800);
+            } catch {
+                const textarea = document.createElement('textarea');
+                textarea.value = snippet;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                btn.textContent = 'Copied!';
+                btn.classList.add('text-emerald-400');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('text-emerald-400');
+                }, 1800);
+            }
+        });
+    });
 
     // ----------------------------------------------------
     // Form Submit: Selective Scan vs Direct Reap

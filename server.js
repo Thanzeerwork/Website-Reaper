@@ -6,6 +6,7 @@ const ClonerEngine = require('./cloner/engine');
 const WgetCrawler = require('./cloner/wgetCrawler');
 const HybridCloner = require('./cloner/hybridCloner');
 const SiteScanner = require('./cloner/siteScanner');
+const { packageSkillZip } = require('./cloner/skillsPackager');
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -476,6 +477,34 @@ app.delete('/api/clones/:id', (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * AI Agent Skills Download endpoint
+ * Bundles the Web Clone Architect skill for Antigravity, Cursor, Claude Code, and Codex
+ */
+app.get('/api/skills/download', async (req, res) => {
+    const agent = req.query.agent || 'all';
+    try {
+        await packageSkillZip(agent, res);
+    } catch (err) {
+        console.error('[Skills API] Error bundling skills:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to package skill archive: ' + err.message });
+        }
+    }
+});
+
+app.get('/api/skills/download/:agent', async (req, res) => {
+    const { agent } = req.params;
+    try {
+        await packageSkillZip(agent, res);
+    } catch (err) {
+        console.error('[Skills API] Error bundling skills:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to package skill archive: ' + err.message });
+        }
     }
 });
 
