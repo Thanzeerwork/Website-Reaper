@@ -13,3 +13,4 @@ services:
         value: /usr/bin/chromium
       - key: NODE_ENV
         value: production
+

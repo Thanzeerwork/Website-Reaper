@@ -251,6 +251,7 @@ class HybridCloner {
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
                     '--disable-web-security',
                     '--enable-webgl',
                     '--enable-accelerated-2d-canvas',
